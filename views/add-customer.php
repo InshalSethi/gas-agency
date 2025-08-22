@@ -1,0 +1,295 @@
+<?php
+// edit_customer.php
+require '../config/db.php';
+require_once '../config/db_functions.php';
+require '../config/auth.php';
+
+    if(isset($_POST['save'])){
+        $name = $_POST['name'];
+        $phone = $_POST['phone'];
+        $cnic = $_POST['cnic'];
+        $person_name = $_POST['person_name'];
+        $person_cnic = $_POST['person_cnic'];
+        $person_phone = $_POST['person_phone'];
+        $cash_amount = $_POST['cash_amount'];
+        $cheque_details = $_POST['cheque_details'];
+        $gas_types = $_POST['gas_types'];
+        $time_zone = date_default_timezone_set("Asia/Karachi");
+        $date = date("Y-m-d h:i:s");
+    // Convert each element to an integer
+    $gas_types_int = array_map('intval', $gas_types);
+
+    // Encode to JSON format
+    $gasTypes = json_encode($gas_types_int);
+    $customer_id = uniqid();
+        $ins_arr = array(
+            "customer_id"=>$customer_id,
+            "name"=>$name,
+            "phone"=>$phone,
+            "cnic"=>$cnic,
+            "security_deposit"=>$cash_amount,
+            "gas_types"=>$gasTypes,
+            "active"=>1,
+            "created_at"=>$date
+        );
+        // var_dump($ins_arr);die();
+        $CusId = $db->insert("customers",$ins_arr);
+
+        $so_arr = array(
+                "customer_id"=>$customer_id,
+                "person_name"=>$person_name,
+                "person_cnic"=>$person_cnic,
+                "person_phone"=>$person_phone,
+                "cash_amount"=>$cash_amount,
+                "cheque_details"=>$cheque_details
+            );
+        // var_dump($ins_arr);die();
+        $db->insert("security_options",$so_arr);
+
+        if (isset($_POST['package_id'])) {
+            $pro_id=$_POST['package_id'];
+            $pro_name=$_POST['package_name'];
+            $pro_quantity=$_POST['package_quantity'];
+
+            $total_pkg=count($pro_id);
+            for ($i=0; $i < $total_pkg; $i++) { 
+
+                if( $pro_id[$i] != '' ){
+                    $bonus_arr=array( 
+                    "customer_id"=>$CusId,
+                    "product_id"=>$pro_id[$i],
+                    "product_name"=>$pro_name[$i],
+                    "qty"=>$pro_quantity[$i],
+                    "created_at"=>$date
+                    );
+                    $db->insert('bonus_cylinders',$bonus_arr);
+                }
+
+            }
+        }
+
+        header("Location: customer_management.php");
+        exit();
+    }
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Customer</title>
+    <?php include '../libs/links.php'; ?>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+</head>
+<style>
+
+    body{
+        overflow-x: hidden;
+    }
+    .btn-ntf {
+        cursor: pointer;
+    }
+
+    .table td, .jsgrid .jsgrid-table td {
+        padding: 0;
+    }
+
+    .btn-del {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 25px!important;
+        height: 25px!important;
+        padding: 2px!important;
+        margin: 0 auto; /* Center the button */
+    }
+
+    td.center-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .select2-container--default .select2-results__option[aria-disabled=true] {
+        color: #f00;
+    }
+    @media(min-width: 320px) and (max-width: 1020px){
+        body{
+            width: fit-content;
+        }
+    }
+</style>
+<body>
+  <?php include '../libs/sidebar.php'; ?>
+
+    <div class="container">
+        <header><h1 class="text-white mb-0">Add Customer</h1></header>
+        <form method="POST" action="">
+            <h5>Cutomer Info</h5>
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" class="form-control" value="" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone:</label>
+                <input type="text" id="phone" name="phone" class="form-control" value="" required>
+            </div>
+            <div class="form-group">
+                <label for="cnic">CNIC:</label>
+                <input type="text" id="cnic" name="cnic" class="form-control" value="" required>
+            </div>
+            <div class="form-group">
+                <label for="gasType">Gas Type</label>
+                <select class="form-control" id="gasType" name="gas_types[]" multiple="multiple" required>
+                    <option value="">Select Cylinder Type</option>
+                    <?php 
+                    $gasTypeArray = json_decode($customer['gas_types'], true);
+                    $cylinder_query = "SELECT id, name FROM cylinders";
+                    $cylinder_result = $conn->query($cylinder_query);
+                    $gas_types = [];
+                    while ($row = $cylinder_result->fetch_assoc()) {
+                        $gas_types[] = $row;
+                    }
+                    foreach ($gas_types as $gas_type) { 
+                        ?>
+                        <option value="<?php echo $gas_type['id']; ?>" ><?php echo $gas_type['name']; ?></option>
+                    <?php } ?>
+                </select>
+            </div>
+            <!-- <div class="form-group">
+                <label for="bonus_cylinders">Bonus Cylinders (optional):</label>
+                <input type="number" id="bonus_cylinders" name="bonus_cylinders" class="form-control" value="">
+            </div> -->
+            <h5>Bonus Cylinders</h5>
+            <div class="row" style="padding-left: 15px;">
+                <div class="col-md-3">
+                    <div class="form-group row">
+                      <?php 
+                      $db->orderBy("name",'asc');
+                      $packages=$db->get('cylinders');
+                      ?>
+                      <select class="js-example-basic-single w-100" style="overflow-x:hidden;">
+                        <option value=""  >Select Cylinder</option>
+                        <?php
+                        foreach($packages as $pac){
+                           ?>
+                           <option 
+                           value="<?php echo $pac['id']; ?>" 
+                           package-name="<?php echo $pac['name']; ?>" 
+                           package-price="<?php echo $pac['retail_rate']; ?>" 
+                           stock-qty=<?php echo $pac['qty']; ?> 
+                           >
+
+                           <?php echo $pac['name']; ?>  
+
+                       </option>
+                       <?php } ?>
+                    </select>
+                    </div>
+                </div>
+                <div class="col-md-9">
+                    <div class="table-responsive" >
+                        <table class="table table-bordered table-hover" id="normalinvoice">
+                            <thead>
+                                <tr>
+                                  <th class="text-center">Name<i class="text-danger">*</i></th>
+                                  <th class="text-center">Quantity</th>
+                                  <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="addinvoiceItem"></tbody>
+                        </table>                            
+                    </div>
+                </div>
+            </div>
+            <h5>Cutomer Security</h5>
+            <div class="form-group" id="person_security" >
+                <label for="person_name">Person Name:</label>
+                <input type="text" id="person_name" name="person_name" class="form-control" value="">
+                <label for="person_cnic">Person CNIC:</label>
+                <input type="text" id="person_cnic" name="person_cnic" class="form-control" value="">
+                <label for="person_phone">Person Phone:</label>
+                <input type="text" id="person_phone" name="person_phone" class="form-control" value="">
+            </div>
+            <div class="form-group" id="cash_security" >
+                <label for="cash_amount">Cash Amount:</label>
+                <input type="number" id="cash_amount" name="cash_amount" class="form-control" value="">
+            </div>
+            <div class="form-group" id="cheque_security" >
+                <label for="cheque_details">Cheque Details:</label>
+                <input type="text" id="cheque_details" name="cheque_details" class="form-control" value="">
+            </div>
+            <button type="submit" name="save" class="btn btn-primary">Craete</button>
+            <button type="button" class="btn btn-secondary" onclick="window.history.back()">Back</button>
+        </form>
+    </div>
+<?php include('../libs/jslinks.php'); ?>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).on('keydown', function(e) {
+        // Trigger on alt + s key press
+        if (e.altKey && e.key === 's') {
+            // Open Select2 dropdown
+            $('.js-example-basic-single').select2('open');
+        }
+        if (e.altKey && e.key === 'a') {
+            // Open Select2 dropdown
+            $('.js-example-basic-single').select2('close');
+        }
+    });
+    $(document).ready(function() { 
+        $('#gasType').select2({
+            placeholder: "Select Cylinder Type"
+        });
+        $(".js-example-basic-single").select2(); $('.js-example-basic-single').select2('open'); 
+    });
+    $(".js-example-basic-single").change(function(){
+        var pac_id = $(this).children("option:selected").val();
+
+        if (pac_id != '') {
+
+
+          var pac_price = $('option:selected', this).attr('package-price');
+          var stockQty = $('option:selected', this).attr('stock-qty');
+          var pac_name=$('option:selected', this).attr('package-name');
+
+          var pro_full_name = pac_name 
+
+          if ($('tr').hasClass('invoice-row'+pac_id+'')) {
+            alert("This Product Already Added In Invoice");
+        } else{
+
+
+
+            $("#addinvoiceItem").append('<tr class="invoice-row'+pac_id+'"><td style="width: 500px"><input name="package_name[]"  class="form-control form-control-sm productSelection"  required="" value="'+pro_full_name+'" autocomplete="off" tabindex="1" type="text"><input type="hidden" class="autocomplete_hidden_value" value="'+pac_id+'" name="package_id[]" ></td><td style="width: 150px;"><input name="package_quantity[]" autocomplete="off" class="total_qty_1 form-control form-control-sm" id="total_qty_'+pac_id+'" onkeyup="quantity_calculate('+pac_id+');" value="1" required="" placeholder="0.00" tabindex="3" type="number"><input type="hidden" id="stock_qty'+pac_id+'" value="'+stockQty+'"/> </td><td><button  class="btn btn-danger btn-rounded btn-icon btn-del" type="button" onclick="deleteRow('+pac_id+')" value="Delete" tabindex="5"><i class="fa fa-trash"></i></button></td></tr>');
+
+            
+            $(".select2-search__field").val('');
+            $(".js-example-basic-single").select2("open");
+
+
+        }
+    } else{
+      var text='Please Select Valid Item!';
+      showToast('error',text,'Notification');
+    }
+
+    });
+    function deleteRow(rem_id) {
+
+    $(".js-example-basic-single").on("select2-closed", function(e) {
+      $(".js-example-basic-single").select2("open");
+  });
+    $(".invoice-row"+rem_id+"").remove();
+      // update grand total 
+    CalculateTotalAmount();
+      // set discount price given
+    var total_dis_update=0;
+    $(".total_discount").each(function(){
+      total_dis_update += + parseFloat($(this).val());
+  });
+    $("#total_discount_ammount").val(total_dis_update);
+
+}
+</script>
+</body>
+</html>

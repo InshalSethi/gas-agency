@@ -1,0 +1,310 @@
+[01-Jun-2025 12:23:24 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Too many connections in /home/sultangr/cylinder.ghulamsarwer.com/config/db.php:9
+Stack trace:
+#0 /home/sultangr/cylinder.ghulamsarwer.com/config/db.php(9): mysqli->__construct('localhost', 'sultangr_cylind...', '1d8AtZRo?RRA', 'sultangr_cylind...')
+#1 /home/sultangr/cylinder.ghulamsarwer.com/views/add-sale-invoice.php(3): require('/home/sultangr/...')
+#2 {main}
+  thrown in /home/sultangr/cylinder.ghulamsarwer.com/config/db.php on line 9
+[01-Jun-2025 12:41:16 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Too many connections in /home/sultangr/cylinder.ghulamsarwer.com/config/db.php:9
+Stack trace:
+#0 /home/sultangr/cylinder.ghulamsarwer.com/config/db.php(9): mysqli->__construct('localhost', 'sultangr_cylind...', '1d8AtZRo?RRA', 'sultangr_cylind...')
+#1 /home/sultangr/cylinder.ghulamsarwer.com/views/customer_management.php(3): require('/home/sultangr/...')
+#2 {main}
+  thrown in /home/sultangr/cylinder.ghulamsarwer.com/config/db.php on line 9
+[01-Jun-2025 19:53:23 Asia/Karachi] PHP Fatal error:  Uncaught mysqli_sql_exception: Too many connections in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php:323
+Stack trace:
+#0 [internal function]: mysqli->__construct('localhost', 'sultangr_cylind...', '1d8AtZRo?RRA', 'sultangr_cylind...', NULL, NULL)
+#1 /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php(323): ReflectionClass->newInstanceArgs(Array)
+#2 /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php(415): MysqliDb->connect('default')
+#3 /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php(1995): MysqliDb->mysqli()
+#4 /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php(1601): MysqliDb->_prepareQuery()
+#5 /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php(751): MysqliDb->_buildQuery(NULL)
+#6 /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_customers.php(24): MysqliDb->get('customers', NULL, 'id')
+#7 {main}
+  thrown in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 323
+[02-Jun-2025 07:12:55 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Too many connections in /home/sultangr/cylinder.ghulamsarwer.com/config/db.php:9
+Stack trace:
+#0 /home/sultangr/cylinder.ghulamsarwer.com/config/db.php(9): mysqli->__construct('localhost', 'sultangr_cylind...', '1d8AtZRo?RRA', 'sultangr_cylind...')
+#1 /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_customers.php(2): require('/home/sultangr/...')
+#2 {main}
+  thrown in /home/sultangr/cylinder.ghulamsarwer.com/config/db.php on line 9
+[02-Jun-2025 07:45:35 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[02-Jun-2025 07:45:50 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[02-Jun-2025 07:45:58 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[02-Jun-2025 07:46:08 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[02-Jun-2025 07:46:17 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[02-Jun-2025 16:38:47 Asia/Karachi] PHP Warning:  Undefined array key "package_id" in /home/sultangr/cylinder.ghulamsarwer.com/views/add-sale-invoice.php on line 95
+[02-Jun-2025 16:38:47 Asia/Karachi] PHP Warning:  Undefined array key "package_name" in /home/sultangr/cylinder.ghulamsarwer.com/views/add-sale-invoice.php on line 96
+[02-Jun-2025 16:38:47 Asia/Karachi] PHP Warning:  Undefined array key "empty_quantity" in /home/sultangr/cylinder.ghulamsarwer.com/views/add-sale-invoice.php on line 97
+[02-Jun-2025 16:38:47 Asia/Karachi] PHP Warning:  Undefined array key "package_quantity" in /home/sultangr/cylinder.ghulamsarwer.com/views/add-sale-invoice.php on line 98
+[02-Jun-2025 16:38:47 Asia/Karachi] PHP Warning:  Undefined array key "package_rate" in /home/sultangr/cylinder.ghulamsarwer.com/views/add-sale-invoice.php on line 99
+[02-Jun-2025 16:38:47 Asia/Karachi] PHP Warning:  Undefined array key "total_price" in /home/sultangr/cylinder.ghulamsarwer.com/views/add-sale-invoice.php on line 100
+[02-Jun-2025 16:38:47 Asia/Karachi] PHP Fatal error:  Uncaught TypeError: count(): Argument #1 ($value) must be of type Countable|array, null given in /home/sultangr/cylinder.ghulamsarwer.com/views/add-sale-invoice.php:103
+Stack trace:
+#0 {main}
+  thrown in /home/sultangr/cylinder.ghulamsarwer.com/views/add-sale-invoice.php on line 103
+[06-Jun-2025 13:52:06 Asia/Karachi] PHP Warning:  count(): Parameter must be an array or an object that implements Countable in /home/sultangr/cylinder.ghulamsarwer.com/views/add-sale-invoice.php on line 103
+[12-Jul-2025 17:35:49 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function baseurl() in /home/sultangr/cylinder.ghulamsarwer.com/libs/jslinks.php:35
+Stack trace:
+#0 /home/sultangr/cylinder.ghulamsarwer.com/views/login.php(40): include()
+#1 {main}
+  thrown in /home/sultangr/cylinder.ghulamsarwer.com/libs/jslinks.php on line 35
+[12-Jul-2025 17:38:10 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function baseurl() in /home/sultangr/cylinder.ghulamsarwer.com/libs/jslinks.php:35
+Stack trace:
+#0 /home/sultangr/cylinder.ghulamsarwer.com/views/login.php(40): include()
+#1 {main}
+  thrown in /home/sultangr/cylinder.ghulamsarwer.com/libs/jslinks.php on line 35
+[29-Jul-2025 07:44:46 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[29-Jul-2025 09:07:12 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[29-Jul-2025 09:31:13 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[29-Jul-2025 10:03:32 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[29-Jul-2025 10:26:27 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[29-Jul-2025 10:27:21 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[29-Jul-2025 10:27:30 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[29-Jul-2025 11:59:06 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[29-Jul-2025 12:07:53 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[29-Jul-2025 12:10:00 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[29-Jul-2025 13:10:07 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[29-Jul-2025 13:59:12 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[30-Jul-2025 06:56:21 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[30-Jul-2025 06:59:59 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[30-Jul-2025 07:02:10 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[30-Jul-2025 07:03:47 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[30-Jul-2025 07:08:24 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[30-Jul-2025 17:59:39 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[02-Aug-2025 09:08:03 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[02-Aug-2025 09:18:01 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[02-Aug-2025 14:20:20 Asia/Karachi] PHP Fatal error:  Uncaught mysqli_sql_exception: Incorrect decimal value: '' for column `sultangr_cylinder_sys`.`transactions`.`amount` at row 3222 in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php:927
+Stack trace:
+#0 /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php(927): mysqli_stmt->execute()
+#1 /home/sultangr/cylinder.ghulamsarwer.com/views/edit-invoice.php(97): MysqliDb->update('transactions', Array)
+#2 {main}
+  thrown in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 927
+[02-Aug-2025 14:20:46 Asia/Karachi] PHP Fatal error:  Uncaught mysqli_sql_exception: Incorrect decimal value: '' for column `sultangr_cylinder_sys`.`transactions`.`amount` at row 3222 in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php:927
+Stack trace:
+#0 /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php(927): mysqli_stmt->execute()
+#1 /home/sultangr/cylinder.ghulamsarwer.com/views/edit-invoice.php(97): MysqliDb->update('transactions', Array)
+#2 {main}
+  thrown in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 927
+[02-Aug-2025 14:21:00 Asia/Karachi] PHP Fatal error:  Uncaught mysqli_sql_exception: Incorrect decimal value: '' for column `sultangr_cylinder_sys`.`transactions`.`amount` at row 3222 in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php:927
+Stack trace:
+#0 /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php(927): mysqli_stmt->execute()
+#1 /home/sultangr/cylinder.ghulamsarwer.com/views/edit-invoice.php(97): MysqliDb->update('transactions', Array)
+#2 {main}
+  thrown in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 927
+[02-Aug-2025 14:44:35 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[03-Aug-2025 11:25:21 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[03-Aug-2025 12:53:03 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[03-Aug-2025 12:54:33 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[04-Aug-2025 14:09:52 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[04-Aug-2025 14:19:18 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[04-Aug-2025 14:41:13 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[06-Aug-2025 07:06:38 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[06-Aug-2025 12:07:03 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 285
+[06-Aug-2025 12:07:03 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 285
+[06-Aug-2025 12:07:03 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 287
+[06-Aug-2025 12:07:03 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 287
+[06-Aug-2025 12:07:03 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 289
+[06-Aug-2025 12:07:03 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 289
+[06-Aug-2025 12:07:03 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 293
+[06-Aug-2025 12:07:03 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 293
+[06-Aug-2025 12:07:03 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 297
+[06-Aug-2025 12:07:03 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 297
+[06-Aug-2025 12:07:54 Asia/Karachi] PHP Fatal error:  Uncaught mysqli_sql_exception: Incorrect decimal value: '' for column `sultangr_cylinder_sys`.`customers`.`security_deposit` at row 1 in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php:927
+Stack trace:
+#0 /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php(927): mysqli_stmt->execute()
+#1 /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php(49): MysqliDb->update('customers', Array)
+#2 {main}
+  thrown in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 927
+[06-Aug-2025 07:10:20 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[06-Aug-2025 07:18:09 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[06-Aug-2025 07:32:00 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[06-Aug-2025 08:57:39 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[06-Aug-2025 14:01:30 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 285
+[06-Aug-2025 14:01:30 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 285
+[06-Aug-2025 14:01:30 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 287
+[06-Aug-2025 14:01:30 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 287
+[06-Aug-2025 14:01:30 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 289
+[06-Aug-2025 14:01:30 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 289
+[06-Aug-2025 14:01:30 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 293
+[06-Aug-2025 14:01:30 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 293
+[06-Aug-2025 14:01:30 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 297
+[06-Aug-2025 14:01:30 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 297
+[06-Aug-2025 14:01:46 Asia/Karachi] PHP Fatal error:  Uncaught mysqli_sql_exception: Incorrect decimal value: '' for column `sultangr_cylinder_sys`.`customers`.`security_deposit` at row 1 in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php:927
+Stack trace:
+#0 /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php(927): mysqli_stmt->execute()
+#1 /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php(49): MysqliDb->update('customers', Array)
+#2 {main}
+  thrown in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 927
+[06-Aug-2025 14:02:13 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 285
+[06-Aug-2025 14:02:13 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 285
+[06-Aug-2025 14:02:13 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 287
+[06-Aug-2025 14:02:13 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 287
+[06-Aug-2025 14:02:13 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 289
+[06-Aug-2025 14:02:13 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 289
+[06-Aug-2025 14:02:13 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 293
+[06-Aug-2025 14:02:13 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 293
+[06-Aug-2025 14:02:13 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 297
+[06-Aug-2025 14:02:13 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 297
+[06-Aug-2025 14:02:28 Asia/Karachi] PHP Fatal error:  Uncaught mysqli_sql_exception: Incorrect decimal value: '' for column `sultangr_cylinder_sys`.`customers`.`security_deposit` at row 1 in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php:927
+Stack trace:
+#0 /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php(927): mysqli_stmt->execute()
+#1 /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php(49): MysqliDb->update('customers', Array)
+#2 {main}
+  thrown in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 927
+[06-Aug-2025 14:02:37 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 285
+[06-Aug-2025 14:02:37 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 285
+[06-Aug-2025 14:02:37 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 287
+[06-Aug-2025 14:02:37 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 287
+[06-Aug-2025 14:02:37 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 289
+[06-Aug-2025 14:02:37 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 289
+[06-Aug-2025 14:02:37 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 293
+[06-Aug-2025 14:02:37 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 293
+[06-Aug-2025 14:02:37 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 297
+[06-Aug-2025 14:02:37 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 297
+[06-Aug-2025 14:02:46 Asia/Karachi] PHP Fatal error:  Uncaught mysqli_sql_exception: Incorrect decimal value: '' for column `sultangr_cylinder_sys`.`customers`.`security_deposit` at row 1 in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php:927
+Stack trace:
+#0 /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php(927): mysqli_stmt->execute()
+#1 /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php(49): MysqliDb->update('customers', Array)
+#2 {main}
+  thrown in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 927
+[06-Aug-2025 14:03:57 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 285
+[06-Aug-2025 14:03:57 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 285
+[06-Aug-2025 14:03:57 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 287
+[06-Aug-2025 14:03:57 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 287
+[06-Aug-2025 14:03:57 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 289
+[06-Aug-2025 14:03:57 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 289
+[06-Aug-2025 14:03:57 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 293
+[06-Aug-2025 14:03:57 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 293
+[06-Aug-2025 14:03:57 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 297
+[06-Aug-2025 14:03:57 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 297
+[06-Aug-2025 14:04:16 Asia/Karachi] PHP Fatal error:  Uncaught mysqli_sql_exception: Incorrect decimal value: '' for column `sultangr_cylinder_sys`.`customers`.`security_deposit` at row 1 in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php:927
+Stack trace:
+#0 /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php(927): mysqli_stmt->execute()
+#1 /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php(49): MysqliDb->update('customers', Array)
+#2 {main}
+  thrown in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 927
+[06-Aug-2025 14:05:28 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 285
+[06-Aug-2025 14:05:28 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 285
+[06-Aug-2025 14:05:28 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 287
+[06-Aug-2025 14:05:28 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 287
+[06-Aug-2025 14:05:28 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 289
+[06-Aug-2025 14:05:28 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 289
+[06-Aug-2025 14:05:28 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 293
+[06-Aug-2025 14:05:28 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 293
+[06-Aug-2025 14:05:28 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 297
+[06-Aug-2025 14:05:28 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 297
+[06-Aug-2025 14:05:43 Asia/Karachi] PHP Fatal error:  Uncaught mysqli_sql_exception: Incorrect decimal value: '' for column `sultangr_cylinder_sys`.`customers`.`security_deposit` at row 1 in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php:927
+Stack trace:
+#0 /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php(927): mysqli_stmt->execute()
+#1 /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php(49): MysqliDb->update('customers', Array)
+#2 {main}
+  thrown in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 927
+[06-Aug-2025 14:06:03 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 285
+[06-Aug-2025 14:06:03 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 285
+[06-Aug-2025 14:06:03 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 287
+[06-Aug-2025 14:06:03 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 287
+[06-Aug-2025 14:06:03 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 289
+[06-Aug-2025 14:06:03 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 289
+[06-Aug-2025 14:06:03 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 293
+[06-Aug-2025 14:06:03 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 293
+[06-Aug-2025 14:06:03 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 297
+[06-Aug-2025 14:06:03 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 297
+[06-Aug-2025 14:07:15 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 285
+[06-Aug-2025 14:07:15 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 285
+[06-Aug-2025 14:07:15 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 287
+[06-Aug-2025 14:07:15 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 287
+[06-Aug-2025 14:07:15 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 289
+[06-Aug-2025 14:07:15 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 289
+[06-Aug-2025 14:07:15 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 293
+[06-Aug-2025 14:07:15 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 293
+[06-Aug-2025 14:07:15 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 297
+[06-Aug-2025 14:07:15 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 297
+[06-Aug-2025 14:07:45 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 285
+[06-Aug-2025 14:07:45 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 285
+[06-Aug-2025 14:07:45 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 287
+[06-Aug-2025 14:07:45 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 287
+[06-Aug-2025 14:07:45 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 289
+[06-Aug-2025 14:07:45 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 289
+[06-Aug-2025 14:07:45 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 293
+[06-Aug-2025 14:07:45 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 293
+[06-Aug-2025 14:07:45 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 297
+[06-Aug-2025 14:07:45 Asia/Karachi] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/edit_customer.php on line 297
+[06-Aug-2025 09:11:20 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[06-Aug-2025 09:11:32 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[06-Aug-2025 10:35:57 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[06-Aug-2025 11:41:41 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[06-Aug-2025 11:59:39 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[06-Aug-2025 14:41:00 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[06-Aug-2025 14:50:29 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[07-Aug-2025 06:44:44 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[07-Aug-2025 11:30:42 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[07-Aug-2025 13:56:30 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[08-Aug-2025 07:36:14 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[09-Aug-2025 07:18:19 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[09-Aug-2025 07:18:40 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[09-Aug-2025 07:19:01 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[09-Aug-2025 07:19:06 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[09-Aug-2025 07:19:16 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[09-Aug-2025 07:33:37 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[09-Aug-2025 11:42:12 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[09-Aug-2025 11:44:34 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[10-Aug-2025 13:05:38 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[10-Aug-2025 13:09:23 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[10-Aug-2025 13:14:49 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[11-Aug-2025 13:10:03 Asia/Karachi] PHP Warning:  Undefined variable $customer in /home/sultangr/cylinder.ghulamsarwer.com/views/add-customer.php on line 145
+[11-Aug-2025 13:10:03 Asia/Karachi] PHP Warning:  Trying to access array offset on null in /home/sultangr/cylinder.ghulamsarwer.com/views/add-customer.php on line 145
+[11-Aug-2025 13:10:03 Asia/Karachi] PHP Deprecated:  json_decode(): Passing null to parameter #1 ($json) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/add-customer.php on line 145
+[11-Aug-2025 08:12:48 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[11-Aug-2025 08:13:58 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[11-Aug-2025 14:49:42 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[11-Aug-2025 15:02:55 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[12-Aug-2025 09:58:36 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[12-Aug-2025 10:00:13 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[12-Aug-2025 10:00:27 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[12-Aug-2025 13:41:53 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[12-Aug-2025 15:17:11 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[12-Aug-2025 15:23:31 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[13-Aug-2025 06:40:14 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[13-Aug-2025 07:12:15 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[13-Aug-2025 09:15:13 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[13-Aug-2025 09:23:28 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[13-Aug-2025 13:57:06 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[13-Aug-2025 14:03:21 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[13-Aug-2025 14:04:36 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[13-Aug-2025 14:12:09 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[14-Aug-2025 09:03:22 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[14-Aug-2025 09:34:32 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[14-Aug-2025 09:42:40 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[15-Aug-2025 07:20:48 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[16-Aug-2025 06:56:07 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[16-Aug-2025 12:50:00 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[16-Aug-2025 13:49:18 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[16-Aug-2025 14:49:09 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[16-Aug-2025 14:49:09 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[16-Aug-2025 14:49:17 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[16-Aug-2025 14:58:37 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[18-Aug-2025 11:38:51 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[18-Aug-2025 11:52:13 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[18-Aug-2025 11:57:51 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[18-Aug-2025 12:11:19 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[18-Aug-2025 12:23:50 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[18-Aug-2025 12:26:22 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[18-Aug-2025 12:26:35 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[18-Aug-2025 12:26:48 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[18-Aug-2025 12:27:20 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[18-Aug-2025 12:27:48 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[18-Aug-2025 12:28:07 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[19-Aug-2025 13:56:02 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[19-Aug-2025 13:59:11 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[19-Aug-2025 14:00:51 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[19-Aug-2025 14:03:56 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[20-Aug-2025 07:51:06 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[20-Aug-2025 10:57:10 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[20-Aug-2025 14:38:17 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[20-Aug-2025 14:38:29 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[20-Aug-2025 14:43:27 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[21-Aug-2025 13:02:14 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[21-Aug-2025 13:14:42 UTC] PHP Deprecated:  MysqliDb::insertMulti(): Implicitly marking parameter $dataKeys as nullable is deprecated, the explicit nullable type must be used instead in /home/sultangr/cylinder.ghulamsarwer.com/config/MysqliDb.php on line 846
+[21-Aug-2025 14:54:58 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[21-Aug-2025 14:55:14 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60
+[22-Aug-2025 07:17:31 UTC] PHP Deprecated:  strtotime(): Passing null to parameter #1 ($datetime) of type string is deprecated in /home/sultangr/cylinder.ghulamsarwer.com/views/fetch_cylinders.php on line 60

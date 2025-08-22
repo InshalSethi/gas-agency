@@ -1,0 +1,117 @@
+
+
+CREATE DATABASE gas_management;
+CREATE USER 'gas_user'@'localhost' IDENTIFIED BY 'password';
+GRANT ALL PRIVILEGES ON gas_management.* TO 'gas_user'@'localhost';
+FLUSH PRIVILEGES;
+
+
+
+USE gas_management;
+
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL
+);
+
+
+CREATE TABLE cylinders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    gas_type VARCHAR(50),
+    total_amount INT,
+    available_amount INT,
+    empty_cylinders INT
+);
+
+
+
+
+USE gas_management;
+
+CREATE TABLE customers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id VARCHAR(50) UNIQUE NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    phone VARCHAR(15) NOT NULL,
+    cnic VARCHAR(20) NOT NULL,
+    bonus_cylinders INT DEFAULT 0
+);
+
+CREATE TABLE security_options (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id VARCHAR(50) NOT NULL,
+    security_type ENUM('Person', 'Cash', 'Cheque') NOT NULL,
+    person_name VARCHAR(100),
+    person_cnic VARCHAR(20),
+    person_phone VARCHAR(15),
+    cash_amount DECIMAL(10, 2),
+    cheque_details VARCHAR(255),
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+);
+
+CREATE TABLE transactions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id VARCHAR(50) NOT NULL,
+    transaction_type ENUM('Purchase', 'Rental', 'Refill') NOT NULL,
+    cylinder_count INT NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    balance DECIMAL(10, 2) NOT NULL,
+    transaction_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+);
+
+
+
+USE gas_management;
+
+ALTER TABLE customers
+ADD COLUMN security_deposit DECIMAL(10, 2) DEFAULT 0.00;
+
+-- Existing transactions table already covers transaction history.
+
+ALTER TABLE customers ADD COLUMN balance DECIMAL(10, 2) DEFAULT 0;
+ALTER TABLE customers
+ADD COLUMN cylinders INT NOT NULL DEFAULT 0,
+ADD COLUMN gas_types VARCHAR(255) DEFAULT NULL;
+ALTER TABLE customers
+ADD COLUMN active TINYINT(1) NOT NULL DEFAULT 1;
+
+
+USE gas_management;
+
+-- Add the vendors table
+CREATE TABLE vendors (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    contact_info TEXT,
+    address VARCHAR(255) NOT NULL
+
+);
+
+-- Modify the cylinders table to include vendor_id
+ALTER TABLE cylinders ADD COLUMN vendor_id INT, ADD FOREIGN KEY (vendor_id) REFERENCES vendors(id);
+
+-- Add the payments table
+CREATE TABLE payments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    vendor_id INT,
+    total_cash DECIMAL(10, 2) NOT NULL,
+    cash_paid DECIMAL(10, 2) NOT NULL,
+    payment_date DATE NOT NULL,
+    remaining_balance DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (vendor_id) REFERENCES vendors(id)
+);
+
+CREATE TABLE vendor_transaction_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    transaction_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    vendor_id INT NOT NULL,
+    total_amount DECIMAL(10, 2) NOT NULL,
+    amount_paid DECIMAL(10, 2) NOT NULL,
+    remaining_amount DECIMAL(10, 2),
+    FOREIGN KEY (vendor_id) REFERENCES vendors(id)
+);
+
+ALTER TABLE vendor_transaction_history ADD COLUMN deleted BOOLEAN DEFAULT FALSE;
+ALTER TABLE vendors ADD COLUMN deleted BOOLEAN DEFAULT FALSE;
