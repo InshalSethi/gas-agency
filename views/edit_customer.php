@@ -141,6 +141,83 @@ if (isset($_GET['id'])) {
 
             }
         }
+
+        //Delete from db if any previous rate adjustment item is deleted from row
+        if (isset($_POST['del_rate_item_id'])) {
+
+          $del_rate_id=$_POST['del_rate_item_id'];
+
+          $del_rate_count=count($del_rate_id);
+
+          for ($i=0; $i <$del_rate_count ; $i++) {
+
+            $db->where("id",$del_rate_id[$i]);
+
+            $db->delete("customer_rate_adjustment_products");
+
+          }
+
+        }
+        //Edit rate adjustment products
+        if (isset($_POST['rate_package_item_id'])) {
+
+          $rate_package_item_id=$_POST['rate_package_item_id'];
+
+          $old_rate_pro_id=$_POST['old_rate_package_id'];
+
+          $old_rate_pro_name=$_POST['old_rate_package_name'];
+
+          $old_rate_percentage_discount=$_POST['old_rate_percentage_discount'];
+
+          $old_rate_percentage_increase=$_POST['old_rate_percentage_increase'];
+
+          $order_count_rate_pkg=count($rate_package_item_id);
+
+          for ($i=0; $i < $order_count_rate_pkg; $i++) {
+
+            $rate_pkg_arr_old=array(
+
+              "product_name"=>$old_rate_pro_name[$i],
+
+              "percentage_discount"=>$old_rate_percentage_discount[$i],
+
+              "percentage_increase"=>$old_rate_percentage_increase[$i],
+
+              "updated_at"=>$date
+
+            );
+
+            $db->where("id",$rate_package_item_id[$i]);
+
+            $db->update('customer_rate_adjustment_products',$rate_pkg_arr_old);
+          }
+
+        }
+        // Add new rate adjustment products
+        if (isset($_POST['rate_product_id'])) {
+            $rate_pro_id=$_POST['rate_product_id'];
+            $rate_pro_name=$_POST['rate_product_name'];
+            $rate_percentage_discount=$_POST['rate_percentage_discount'];
+            $rate_percentage_increase=$_POST['rate_percentage_increase'];
+
+            $total_rate_products=count($rate_pro_id);
+            for ($i=0; $i < $total_rate_products; $i++) {
+
+                if( $rate_pro_id[$i] != '' ){
+                    $rate_adjustment_arr=array(
+                    "customer_id"=>$cId,
+                    "product_id"=>$rate_pro_id[$i],
+                    "product_name"=>$rate_pro_name[$i],
+                    "percentage_discount"=>$rate_percentage_discount[$i],
+                    "percentage_increase"=>$rate_percentage_increase[$i],
+                    "created_at"=>$date
+                    );
+                    $db->insert('customer_rate_adjustment_products',$rate_adjustment_arr);
+                }
+
+            }
+        }
+
         header("Location: customer_management.php");
         exit();
     }
@@ -287,10 +364,101 @@ if (isset($_GET['id'])) {
                                     </tr>
                                 <?php } ?>
                             </tbody>
-                        </table>                            
+                        </table>
                     </div>
                 </div>
             </div>
+
+            <!-- Customer Rate Adjustment Products Section -->
+            <h5>Customer Rate Adjustment Products</h5>
+            <div class="row" style="padding-left: 15px;">
+                <div class="col-md-3">
+                    <div class="form-group row">
+                      <?php
+                      $db->orderBy("name",'asc');
+                      $rate_products=$db->get('cylinders');
+                      ?>
+                      <select class="js-rate-product-select w-100" style="overflow-x:hidden;">
+                        <option value=""  >Select Product</option>
+                        <?php
+                        foreach($rate_products as $rate_product){
+                           ?>
+                           <option
+                           value="<?php echo $rate_product['id']; ?>"
+                           data-name="<?php echo $rate_product['name']; ?>"
+                           >
+                           <?php echo $rate_product['name']; ?>
+
+                           </option>
+                           <?php } ?>
+                    </select>
+                    </div>
+                </div>
+                <div class="col-md-9">
+                    <div class="table-responsive" >
+                        <table class="table table-bordered table-hover" id="rateAdjustmentTable">
+                            <thead>
+                                <tr>
+                                  <th class="text-center">Product Name<i class="text-danger">*</i></th>
+                                  <th class="text-center">% Discount</th>
+                                  <th class="text-center">% Increase</th>
+                                  <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="addRateAdjustmentItem">
+                                <?php
+
+                                $db->where("customer_id",$cId);
+
+                                $rate_detail=$db->get("customer_rate_adjustment_products");
+
+                                foreach($rate_detail as $rate_item){
+
+                                  ?>
+
+                                  <tr class="rate-adjustment-row<?php echo $rate_item['id']; ?>">
+
+                                    <td style="width: 500px">
+
+                                      <input name="old_rate_package_name[]"  class="form-control form-control-sm productSelection"  required="" value="<?php echo $rate_item['product_name']; ?>" autocomplete="off" tabindex="1" type="text" readonly>
+
+                                      <input type="hidden" class="autocomplete_hidden_value" value="<?php echo $rate_item['product_id']; ?>" name="old_rate_package_id[]" >
+
+                                      <input type="hidden" class="autocomplete_hidden_value" value="<?php echo $rate_item['id']; ?>" name="rate_package_item_id[]" >
+
+                                    </td>
+
+                                    <td style="width: 150px;">
+
+                                      <input name="old_rate_percentage_discount[]" autocomplete="off" class="form-control form-control-sm" value="<?php echo $rate_item['percentage_discount']; ?>" placeholder="0.00" tabindex="3" type="number" step="any" min="0" max="100">
+
+                                    </td>
+
+                                    <td style="width: 150px;">
+
+                                      <input name="old_rate_percentage_increase[]" autocomplete="off" class="form-control form-control-sm" value="<?php echo $rate_item['percentage_increase']; ?>" placeholder="0.00" tabindex="4" type="number" step="any" min="0">
+
+                                    </td>
+
+                                    <td>
+
+                                      <button  class="btn btn-danger btn-rounded btn-icon btn-del" type="button" onclick="deleteRateAdjustmentRowOld(<?php echo $rate_item['id']; ?>,<?php echo $rate_item['id']; ?>)" value="Delete" tabindex="5"><i class="fa fa-trash"></i></button>
+
+                                    </td>
+
+                                  </tr>
+
+                                  <?php
+
+                                }
+
+                                ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <h5>Cutomer Security</h5>
             <div class="form-group" id="person_security" >
                 <label for="person_name">Person Name:</label>
@@ -330,7 +498,10 @@ if (isset($_GET['id'])) {
         $('#gasType').select2({
             placeholder: "Select Cylinder Type"
         });
-        $(".js-example-basic-single").select2(); $('.js-example-basic-single').select2('open'); 
+        $(".js-example-basic-single").select2(); $('.js-example-basic-single').select2('open');
+        $(".js-rate-product-select").select2({
+            placeholder: "Select Product"
+        });
     });
     $(".js-example-basic-single").change(function(){
         var pac_id = $(this).children("option:selected").val();
@@ -364,6 +535,61 @@ if (isset($_GET['id'])) {
     }
 
     });
+
+    // Rate Adjustment Product Selection Handler
+    $(".js-rate-product-select").change(function(){
+        var rate_product_id = $(this).children("option:selected").val();
+        var rate_product_name = $(this).children("option:selected").data('name');
+
+        if(rate_product_id != ''){
+            // Check if product already exists
+            var existingProduct = false;
+            $('input[name="rate_product_id[]"]').each(function(){
+                if($(this).val() == rate_product_id){
+                    existingProduct = true;
+                    return false;
+                }
+            });
+            $('input[name="old_rate_package_id[]"]').each(function(){
+                if($(this).val() == rate_product_id){
+                    existingProduct = true;
+                    return false;
+                }
+            });
+
+            if(existingProduct){
+                var text='Product already added!';
+                showToast('error',text,'Notification');
+                return;
+            }
+
+            var rate_row_id = Math.floor(Math.random() * 100000);
+            var rate_row = '<tr class="rate-adjustment-row'+rate_row_id+'">';
+            rate_row += '<td>';
+            rate_row += '<input type="hidden" name="rate_product_id[]" value="'+rate_product_id+'">';
+            rate_row += '<input type="text" name="rate_product_name[]" value="'+rate_product_name+'" class="form-control" readonly>';
+            rate_row += '</td>';
+            rate_row += '<td>';
+            rate_row += '<input type="number" name="rate_percentage_discount[]" value="0" class="form-control" step="any" min="0" max="100" placeholder="0.00">';
+            rate_row += '</td>';
+            rate_row += '<td>';
+            rate_row += '<input type="number" name="rate_percentage_increase[]" value="0" class="form-control" step="any" min="0" placeholder="0.00">';
+            rate_row += '</td>';
+            rate_row += '<td class="center-icon">';
+            rate_row += '<button type="button" class="btn btn-danger btn-del" onclick="deleteRateAdjustmentRow('+rate_row_id+')"><i class="fa fa-trash"></i></button>';
+            rate_row += '</td>';
+            rate_row += '</tr>';
+
+            $("#addRateAdjustmentItem").append(rate_row);
+
+            $(".select2-search__field").val('');
+            $(".js-rate-product-select").select2("open");
+        } else {
+            var text='Please Select Valid Product!';
+            showToast('error',text,'Notification');
+        }
+    });
+
     function deleteRowOld(rem_id,meta_id) {
 
 
@@ -382,6 +608,22 @@ if (isset($_GET['id'])) {
 
 
 
+  }
+
+  function deleteRateAdjustmentRow(rem_id) {
+    $(".js-rate-product-select").on("select2-closed", function(e) {
+        $(".js-rate-product-select").select2("open");
+    });
+    $(".rate-adjustment-row"+rem_id+"").remove();
+  }
+
+  function deleteRateAdjustmentRowOld(rem_id,meta_id) {
+    $(".js-rate-product-select").on("select2-closed", function(e) {
+        $(".js-rate-product-select").select2("open");
+    });
+
+    $("#addRateAdjustmentItem").append('<input type="hidden" value="'+meta_id+'" name="del_rate_item_id[]">');
+    $(".rate-adjustment-row"+rem_id+"").remove();
   }
 </script>
 </body>
