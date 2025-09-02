@@ -189,6 +189,46 @@ $totalPending = array_reduce($tpendingCylinders, function($carry, $item) {
     return $carry + array_sum($item);
 }, 0);
 
+// Calculate today's sold cylinders
+$todaySoldCylinders = [];
+$totalTodaySold = 0;
+$today = date('Y-m-d');
+
+// Get today's invoices
+$db->where("deleted_at", NULL, 'IS');
+$db->where("date", $today);
+$todayInvoices = $db->get("invoices");
+
+foreach ($todayInvoices as $todayInvoice) {
+    // Get invoice items for today's invoices
+    $db->where("invoice_id", $todayInvoice['id']);
+    $todayInvoiceItems = $db->get("invoice_items");
+
+    foreach ($todayInvoiceItems as $item) {
+        $product = $cylinderLookup[$item['product_id']];
+        $todaySoldCylinders[$product['name']] = ($todaySoldCylinders[$product['name']] ?? 0) + $item['qty'];
+        $totalTodaySold += $item['qty'];
+    }
+}
+
+// Calculate today's empty cylinders
+$todayEmptyCylinders = [];
+$totalTodayEmpty = 0;
+
+// Get today's empty cylinders from empty_cylinders table
+$db->where("ecy.deleted_at", NULL, 'IS');
+$db->where("DATE(ecy.created_at)", $today);
+$db->join("invoice_items ii", "ecy.invoice_item_id=ii.id", "LEFT");
+$db->join("cylinders cy", "ii.product_id=cy.id", "LEFT");
+$todayEmptyRecords = $db->get("empty_cylinders ecy", null, "ecy.cylinders as qty, cy.name as cylinder_name, cy.id as cylinder_id");
+
+foreach ($todayEmptyRecords as $emptyRecord) {
+    if (!empty($emptyRecord['cylinder_name'])) {
+        $todayEmptyCylinders[$emptyRecord['cylinder_name']] = ($todayEmptyCylinders[$emptyRecord['cylinder_name']] ?? 0) + $emptyRecord['qty'];
+        $totalTodayEmpty += $emptyRecord['qty'];
+    }
+}
+
 // Get cylinder data
 $db->where("deleted_at", NULL, 'IS');
 $db->orderBy("name", "asc");
@@ -433,11 +473,11 @@ if (isset($_REQUEST['reset'])) {
           <div class="col-md-3 mb-4">
             <div class="card empty-cylinders">
               <div class="card-header">
-                <i class="fas fa-history icon"></i>Sold Cylinders
+                <i class="fas fa-history icon"></i>Total Sold
               </div>
               <div class="card-body">
                 <h5 class="card-title"><a href="<?php echo baseurl('views/sale-invoices.php'); ?>"><?php echo $totalPurchased; ?></a></h5>
-                <?php 
+                <?php
                 $pertpurchasedCylinders = [];
 
                 // Aggregate totals
@@ -450,14 +490,14 @@ if (isset($_REQUEST['reset'])) {
                     }
                 }
                 ksort($pertpurchasedCylinders);
-                foreach($pertpurchasedCylinders as $productName => $emptyQty): 
+                foreach($pertpurchasedCylinders as $productName => $emptyQty):
                   ?>
                   <span class="badge badge-secondary"><?php echo "$productName ($emptyQty)"; ?></span>
                 <?php endforeach; ?>
               </div>
             </div>
           </div>
-
+          
           <div class="col-md-3 mb-4">
             <div class="card total-customers">
               <div class="card-header">
@@ -486,6 +526,42 @@ if (isset($_REQUEST['reset'])) {
             </div>
           </div>
 
+          <div class="col-md-3 mb-4">
+            <div class="card empty-cylinders">
+              <div class="card-header">
+                <i class="fas fa-calendar-day icon"></i>Today Sold
+              </div>
+              <div class="card-body">
+                <h5 class="card-title"><a href="<?php echo baseurl('views/sale-invoices.php'); ?>"><?php echo $totalTodaySold; ?></a></h5>
+                <?php
+                ksort($todaySoldCylinders);
+                foreach($todaySoldCylinders as $productName => $soldQty):
+                  ?>
+                  <span class="badge badge-secondary"><?php echo "$productName ($soldQty)"; ?></span>
+                <?php endforeach; ?>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-3 mb-4">
+            <div class="card empty-cylinders">
+              <div class="card-header">
+                <i class="fas fa-calendar-day icon"></i>Today Empty
+              </div>
+              <div class="card-body">
+                <h5 class="card-title"><a href="<?php echo baseurl('views/empty_stock.php'); ?>" class="text-danger"><?php echo $totalTodayEmpty; ?></a></h5>
+                <?php
+                ksort($todayEmptyCylinders);
+                foreach($todayEmptyCylinders as $productName => $emptyQty):
+                  ?>
+                  <span class="badge badge-secondary"><?php echo "$productName ($emptyQty)"; ?></span>
+                <?php endforeach; ?>
+              </div>
+            </div>
+          </div>
+
+          
+
         </div>
         <div class="row">
           <div class="col-md-12">
@@ -494,31 +570,35 @@ if (isset($_REQUEST['reset'])) {
                 <div class="table-container">
                   <div class="mt-2 mb-2">
                     <div class="row">
-                      <div class="col-md-2">
-                        <input type="text" id="dateRangePicker" class="form-control filter" placeholder="Select Date Range" />
+                      <div class="col-md-3">
+                        <input type="text" id="dateRangePicker" class="form-control filter mt-0" placeholder="Select Date Range" />
                       </div>
                       <div class="col-md-2">
-                        <select id="cylinderFilter" class="form-control filter mt-2">
-                          <option value="">Select Cylinder By</option>
+                        <select id="statusFilter" class="form-control filter">
+                          <option value="">Select Status By</option>
                           <option value="empty_pending">Empty Pending</option>
                           <option value="empty_received">Empty Received</option>
                         </select>
                       </div>
                       <div class="col-md-2">
-                        <select id="paymentFilter" class="form-control filter mt-2">
+                        <select id="paymentFilter" class="form-control filter">
                           <option value="">Select Payment By</option>
                           <option value="payment_pending">Payment Pending</option>
                           <option value="payment_received">Payment Received</option>
                         </select>
                       </div>
                       <div class="col-md-2">
-                        <button class="btn btn-info mt-2 w-100" id="resetFilterBtn"><i class="fa fa-refresh"></i> Reset Filter</button>
+                        <select id="cylinderFilter" class="form-control filter">
+                          <option value="">Select Cylinder By</option>
+                          <?php foreach ($cylinders as $cylinder): ?>
+                            <option value="<?php echo $cylinder['id']; ?>"><?php echo $cylinder['name']; ?></option>
+                          <?php endforeach; ?>
+                        </select>
                       </div>
-                      <div class="col-md-2">
-                        <button class="btn btn-primary mt-2 w-100" id="downloadExcelBtn"><i class="fa fa-download"></i> Download Excel</button>
-                      </div>
-                      <div class="col-md-2">
-                        <a class="btn btn-success mt-2 w-100 text-white"  href="views/add-sale-invoice.php"><i class="fa fa-plus"></i> Add Invoice</a>
+                      <div class="col-md-3">
+                        <button class="btn btn-info" id="resetFilterBtn" title="Reset Filter"><i class="fa fa-refresh"></i></button>
+                        <button class="btn btn-primary ml-1" id="downloadExcelBtn" title="Download Excel"><i class="fa fa-download"></i></button>
+                        <a class="btn btn-success ml-1 text-white" href="views/add-sale-invoice.php" title="Add Invoice"><i class="fa fa-plus"></i> Add Invoice</a>
                       </div>
                     </div>
                   </div>
@@ -582,8 +662,9 @@ $(document).ready(function() {
         var dateRange = $('#dateRangePicker').val().split(' - ');
         d.start_date = dateRange[0];
         d.end_date = dateRange[1];
-        d.cylinder_filter = $('#cylinderFilter').val();
+        d.status_filter = $('#statusFilter').val();
         d.payment_filter = $('#paymentFilter').val();
+        d.cylinder_filter = $('#cylinderFilter').val();
       }
     },
     "columns": [
@@ -617,9 +698,10 @@ $(document).ready(function() {
     // Reset date range picker to default values
     $('#dateRangePicker').data('daterangepicker').setStartDate(defaultStartDate);
     $('#dateRangePicker').data('daterangepicker').setEndDate(defaultEndDate);
-    $('#cylinderFilter').val(null);
+    $('#statusFilter').val(null);
     $('#paymentFilter').val(null);
-    
+    $('#cylinderFilter').val(null);
+
     // Reload the DataTable
     dashboardTable.draw();
   });

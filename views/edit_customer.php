@@ -19,6 +19,8 @@ if (isset($_GET['id'])) {
         $name = $_POST['name'];
         $phone = $_POST['phone'];
         $cnic = $_POST['cnic'];
+        $percentage_discount = isset($_POST['percentage_discount']) ? $_POST['percentage_discount'] : 0;
+        $percentage_increase = isset($_POST['percentage_increase']) ? $_POST['percentage_increase'] : 0;
         $person_name = $_POST['person_name'];
         $person_cnic = $_POST['person_cnic'];
         $person_phone = $_POST['person_phone'];
@@ -39,6 +41,8 @@ if (isset($_GET['id'])) {
             "name"=>$name,
             "phone"=>$phone,
             "cnic"=>$cnic,
+            "percentage_discount"=>$percentage_discount,
+            "percentage_increase"=>$percentage_increase,
             "security_deposit"=>$cash_amount,
             "gas_types"=>$gasTypes,
             "active"=>1,
@@ -171,6 +175,14 @@ if (isset($_GET['id'])) {
             <div class="form-group">
                 <label for="cnic">CNIC:</label>
                 <input type="text" id="cnic" name="cnic" class="form-control" value="<?php echo htmlspecialchars($customer['cnic']); ?>" required>
+            </div>
+            <div class="form-group">
+                <label for="percentage_discount">Percentage Discount (%):</label>
+                <input type="number" id="percentage_discount" name="percentage_discount" class="form-control" value="<?php echo isset($customer['percentage_discount']) ? htmlspecialchars($customer['percentage_discount']) : '0'; ?>" min="0" max="100" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="percentage_increase">Percentage Increase (%):</label>
+                <input type="number" id="percentage_increase" name="percentage_increase" class="form-control" value="<?php echo isset($customer['percentage_increase']) ? htmlspecialchars($customer['percentage_increase']) : '0'; ?>" min="0" max="100" step="0.01">
             </div>
             <div class="form-group">
                 <label for="gasType">Gas Type</label>

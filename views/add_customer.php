@@ -10,6 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $phone = $_POST['phone'];
     $cnic = $_POST['cnic'];
     $bonus_cylinders = isset($_POST['bonus_cylinders']) ? $_POST['bonus_cylinders'] : 0;
+    $percentage_discount = isset($_POST['percentage_discount']) ? $_POST['percentage_discount'] : 0;
+    $percentage_increase = isset($_POST['percentage_increase']) ? $_POST['percentage_increase'] : 0;
     $person_name = $_POST['person_name'];
     $person_cnic = $_POST['person_cnic'];
     $person_phone = $_POST['person_phone'];
@@ -31,6 +33,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             "phone"=>$phone,
             "cnic"=>$cnic,
             "bonus_cylinders"=>$bonus_cylinders,
+            "percentage_discount"=>$percentage_discount,
+            "percentage_increase"=>$percentage_increase,
             "security_deposit"=>$cash_amount,
             "gas_types"=>$gasTypes,
             "active"=>1,
@@ -165,6 +169,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
           .content {
               padding: 20px;
           }
+
+          /* Mobile styles */
+          @media (min-width: 302px) and (max-width: 1023px) {
+            body {
+              padding-top: 0px;
+              padding-left: 0px;
+            }
+            .sidebar{
+              display: none;
+            }
+
+            /* Mobile navbar toggler styles */
+            .navbar-toggler.sidebar-open {
+              background-color: white !important;
+              border-color: #dee2e6;
+            }
+
+            .navbar-toggler.sidebar-open .navbar-toggler-icon {
+              background-image: none;
+              font-size: 1.5rem;
+              font-weight: bold;
+              color: #333;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 100%;
+              height: 100%;
+            }
+
+            .navbar-toggler .navbar-toggler-icon {
+              transition: all 0.3s ease;
+            }
+          }
     </style>
 </head>
 <body>
@@ -216,6 +253,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <div class="form-group">
                 <label for="bonus_cylinders">Bonus Cylinders (optional):</label>
                 <input type="number" id="bonus_cylinders" name="bonus_cylinders">
+            </div>
+            <div class="form-group">
+                <label for="percentage_discount">Percentage Discount (%):</label>
+                <input type="number" id="percentage_discount" name="percentage_discount" value="0" min="0" max="100" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="percentage_increase">Percentage Increase (%):</label>
+                <input type="number" id="percentage_increase" name="percentage_increase" value="0" min="0" max="100" step="0.01">
             </div>
             <div class="form-group">
                 <label for="security_type">Security Type:</label>

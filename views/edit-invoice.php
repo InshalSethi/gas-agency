@@ -171,6 +171,8 @@ $emptyCylinder=$db->getOne("empty_cylinders");
 
           $old_total_price=$_POST['old_total_price'];
 
+          $old_increase_flags = isset($_POST['old_increase_flag']) ? $_POST['old_increase_flag'] : array();
+
 
 
 
@@ -195,7 +197,13 @@ $emptyCylinder=$db->getOne("empty_cylinders");
 
 
 
-            $invoice_pkg_arr_old=array(  
+            // Check if increase flag is set for this existing item
+            $old_increase_value = 0;
+            if (isset($old_increase_flags[$i]) && $old_increase_flags[$i] == '1') {
+                $old_increase_value = 1;
+            }
+
+            $invoice_pkg_arr_old=array(
 
               "product_name"=>$old_pro_name[$i],
 
@@ -207,7 +215,9 @@ $emptyCylinder=$db->getOne("empty_cylinders");
 
               "total"=>$old_total_price[$i],
 
-              "updated_at"=>$date 
+              "increase"=>$old_increase_value,
+
+              "updated_at"=>$date
 
             );
 
@@ -254,13 +264,20 @@ $emptyCylinder=$db->getOne("empty_cylinders");
           $pro_quantity=$_POST['package_quantity'];
           $pro_rate=$_POST['package_rate'];
           $total_price=$_POST['total_price'];
+          $increase_flags = isset($_POST['increase_flag']) ? $_POST['increase_flag'] : array();
 
 
           $total_pkg=count($pro_id);
           for ($i=0; $i < $total_pkg; $i++) { 
 
             if( $pro_id[$i] != '' ){
-              $invoice_pkg_arr=array( 
+              // Check if increase flag is set for this new item
+              $increase_value = 0;
+              if (isset($increase_flags[$i]) && $increase_flags[$i] == '1') {
+                  $increase_value = 1;
+              }
+
+              $invoice_pkg_arr=array(
                 "invoice_id"=>$invoice_id,
                 "product_id"=>$pro_id[$i],
                 "product_name"=>$pro_name[$i],
@@ -268,6 +285,7 @@ $emptyCylinder=$db->getOne("empty_cylinders");
                 "qty"=>$pro_quantity[$i],
                 "rate"=>$pro_rate[$i],
                 "total"=>$total_price[$i],
+                "increase"=>$increase_value,
                 "created_at"=>$date
               );
               $invoiceItemId = $db->insert('invoice_items',$invoice_pkg_arr);
@@ -393,6 +411,10 @@ $emptyCylinder=$db->getOne("empty_cylinders");
                   <table class="table table-bordered table-hover" id="normalinvoice">
                     <thead>
                       <tr>
+                        <th class="text-center" style="width: 80px;">
+                          <input type="checkbox" id="selectAllIncrease" onchange="toggleAllIncrease()" title="Select All for Increase" />
+                          <label for="selectAllIncrease" class="mb-0 ml-1" style="font-size: 12px;">All</label>
+                        </th>
                         <th class="text-center">Product Name<i class="text-danger">*</i></th>
                         <th class="text-center">Empty</th>
                         <th class="text-center">Quantity</th>
@@ -410,6 +432,28 @@ $emptyCylinder=$db->getOne("empty_cylinders");
 
                       foreach($detail as $de){ ?>
                         <tr class="invoice-row<?php echo $de['product_id']; ?>">
+
+                          <td class="text-center" style="width: 80px;">
+                            <input type="checkbox" class="increase-checkbox" id="increase_<?php echo $de['product_id']; ?>" data-product-id="<?php echo $de['product_id']; ?>" onchange="toggleIncrease(<?php echo $de['product_id']; ?>)" <?php echo (isset($de['increase']) && $de['increase'] == 1) ? 'checked' : ''; ?> />
+                            <?php
+                            // Calculate base price: if increase was applied, reverse it to get original base price
+                            $currentRate = $de['rate'];
+                            $basePrice = $currentRate;
+
+                            // Get customer's percentage increase to calculate base price
+                            if (isset($de['increase']) && $de['increase'] == 1) {
+                                $db->where('id', $invoice['customer_id']);
+                                $customerData = $db->getOne('customers', 'percentage_increase');
+                                if ($customerData && $customerData['percentage_increase'] > 0) {
+                                    $percentageIncrease = $customerData['percentage_increase'];
+                                    // Reverse the increase: base_price = current_rate / (1 + percentage/100)
+                                    $basePrice = $currentRate / (1 + ($percentageIncrease / 100));
+                                }
+                            }
+                            ?>
+                            <input type="hidden" id="base_price_<?php echo $de['product_id']; ?>" value="<?php echo number_format($basePrice, 2, '.', ''); ?>" />
+                            <input type="hidden" name="old_increase_flag[]" id="old_increase_flag_<?php echo $de['product_id']; ?>" value="<?php echo isset($de['increase']) ? $de['increase'] : '0'; ?>" />
+                          </td>
 
                           <td style="width: 500px">
 
@@ -558,7 +602,231 @@ $emptyCylinder=$db->getOne("empty_cylinders");
       $('.js-example-basic-single').select2('close');
     }
   });
-  $(document).ready(function() { $(".js-example-basic-single,.customer_name").select2(); $('.js-example-basic-single').select2('open'); });
+  $(document).ready(function() {
+      $(".js-example-basic-single,.customer_name").select2();
+      $('.js-example-basic-single').select2('open');
+
+      // Auto-apply customer discount when customer is selected
+      $('.customer_name').on('change', function() {
+          var customer_id = $(this).val();
+          if (customer_id) {
+              fetchCustomerDiscount(customer_id);
+          } else {
+              // Reset discount if no customer selected
+              $('#perc_discount').val(0);
+              calculations();
+          }
+      });
+
+      // Update select all checkbox state on page load for existing items
+      updateSelectAllState();
+
+      // Load customer percentage increase on page load
+      var initialCustomerId = $('.customer_name').val();
+      if (initialCustomerId) {
+          fetchCustomerDiscount(initialCustomerId);
+      }
+  });
+
+  // Global variable to store customer percentage increase
+  var customerPercentageIncrease = 0;
+
+  // Function to ensure customer percentage increase is loaded
+  function ensureCustomerPercentageIncrease() {
+      if (customerPercentageIncrease === 0) {
+          var currentCustomerId = $('.customer_name').val();
+          if (currentCustomerId) {
+              console.log('Customer percentage increase not loaded, fetching for customer ID: ' + currentCustomerId);
+              fetchCustomerDiscount(currentCustomerId);
+          }
+      }
+  }
+
+  // Function to fetch customer discount via AJAX
+  function fetchCustomerDiscount(customer_id) {
+      $.ajax({
+          url: 'get-customer-discount.php',
+          type: 'GET',
+          data: { customer_id: customer_id },
+          dataType: 'json',
+          success: function(response) {
+              if (response.success) {
+                  // Store customer percentage increase globally
+                  customerPercentageIncrease = response.data.percentage_increase || 0;
+
+                  // Auto-populate percentage discount
+                  var discount = response.data.percentage_discount || 0;
+                  $('#perc_discount').val(discount);
+
+                  // Clear flat discount to avoid conflicts
+                  $('#flat_discount').val(0);
+
+                  // Remove readonly attributes to ensure calculation works
+                  $('#perc_discount').removeAttr('readonly');
+                  $('#flat_discount').removeAttr('readonly');
+
+                  // Add visual feedback for auto-applied discount
+                  if (discount > 0) {
+                      $('#perc_discount').addClass('border-success');
+                      setTimeout(function() {
+                          $('#perc_discount').removeClass('border-success');
+                      }, 2000);
+                  }
+
+                  // Force trigger calculations multiple times to ensure it works
+                  setTimeout(function() {
+                      calculations();
+                  }, 100);
+
+                  // Also trigger change event on discount field
+                  $('#perc_discount').trigger('change');
+                  $('#perc_discount').trigger('keyup');
+
+                  console.log('Customer discount applied:', discount + '%');
+                  console.log('Customer increase available:', customerPercentageIncrease + '%');
+
+                  // Update base prices for existing cylinders when customer is selected
+                  updateExistingCylinderBasePrices();
+              } else {
+                  console.error('Error fetching customer discount:', response.message);
+              }
+          },
+          error: function(xhr, status, error) {
+              console.error('AJAX error fetching customer discount:', error);
+          }
+      });
+  }
+
+  // Function to update base prices for existing cylinders when customer is selected
+  function updateExistingCylinderBasePrices() {
+      $('.increase-checkbox').each(function() {
+          var checkbox = $(this);
+          var product_id = checkbox.data('product-id');
+          var currentRate = parseFloat($('#item_price_' + product_id).val());
+          var currentBasePrice = parseFloat($('#base_price_' + product_id).val());
+
+          // Only update base price if checkbox is not checked AND base price seems incorrect
+          // (to avoid overwriting correct base price)
+          if (!checkbox.is(':checked')) {
+              $('#base_price_' + product_id).val(currentRate);
+              console.log('Updated base price for product ' + product_id + ': ' + currentRate);
+          } else {
+              // For checked items, ensure base price is correct (should be lower than current rate)
+              if (customerPercentageIncrease > 0 && currentBasePrice >= currentRate) {
+                  // Calculate correct base price from current increased rate
+                  var correctBasePrice = currentRate / (1 + (customerPercentageIncrease / 100));
+                  $('#base_price_' + product_id).val(correctBasePrice.toFixed(2));
+                  console.log('Corrected base price for checked product ' + product_id + ': ' + correctBasePrice.toFixed(2));
+              }
+          }
+      });
+  }
+
+  // Function to toggle all percentage increases
+  function toggleAllIncrease() {
+      var selectAllCheckbox = $('#selectAllIncrease');
+      var isChecked = selectAllCheckbox.is(':checked');
+
+      // Apply to all existing item checkboxes
+      $('.increase-checkbox').each(function() {
+          var checkbox = $(this);
+          var product_id = checkbox.data('product-id');
+
+          // Set checkbox state
+          checkbox.prop('checked', isChecked);
+
+          // Trigger individual toggle function to handle calculations
+          toggleIncrease(product_id);
+      });
+
+      console.log('Select all increase: ' + (isChecked ? 'checked' : 'unchecked'));
+  }
+
+  // Function to toggle percentage increase for specific item
+  function toggleIncrease(product_id) {
+      // Ensure customer percentage increase is loaded
+      ensureCustomerPercentageIncrease();
+
+      var checkbox = $('#increase_' + product_id);
+      var basePrice = parseFloat($('#base_price_' + product_id).val());
+      var currentRate = parseFloat($('#item_price_' + product_id).val());
+      var quantity = parseFloat($('#total_qty_' + product_id).val()) || 1;
+
+      console.log('Toggle increase for product ' + product_id + ': basePrice=' + basePrice + ', currentRate=' + currentRate + ', customerIncrease=' + customerPercentageIncrease + '%');
+
+      if (checkbox.is(':checked')) {
+          // Apply percentage increase
+          if (customerPercentageIncrease > 0) {
+              var increasedRate = basePrice + (basePrice * customerPercentageIncrease / 100);
+              $('#item_price_' + product_id).val(increasedRate.toFixed(2));
+
+              // Update hidden field to indicate increase is applied
+              // Check if it's an old item or new item
+              if ($('#old_increase_flag_' + product_id).length) {
+                  $('#old_increase_flag_' + product_id).val('1');
+              } else if ($('#increase_flag_' + product_id).length) {
+                  $('#increase_flag_' + product_id).val('1');
+              }
+
+              // Add visual feedback
+              $('#item_price_' + product_id).addClass('border-warning');
+              setTimeout(function() {
+                  $('#item_price_' + product_id).removeClass('border-warning');
+              }, 1500);
+
+              console.log('Increase applied to product ' + product_id + ': ' + customerPercentageIncrease + '%');
+          } else {
+              console.warn('Cannot apply increase: customerPercentageIncrease is ' + customerPercentageIncrease);
+          }
+      } else {
+          // Revert to base price
+          $('#item_price_' + product_id).val(basePrice.toFixed(2));
+
+          // Update hidden field to indicate increase is not applied
+          // Check if it's an old item or new item
+          if ($('#old_increase_flag_' + product_id).length) {
+              $('#old_increase_flag_' + product_id).val('0');
+          } else if ($('#increase_flag_' + product_id).length) {
+              $('#increase_flag_' + product_id).val('0');
+          }
+
+          console.log('Increase removed from product ' + product_id);
+      }
+
+      // Recalculate total for this item
+      var newRate = parseFloat($('#item_price_' + product_id).val());
+      var newTotal = quantity * newRate;
+      $('#total_price_' + product_id).val(newTotal.toFixed(2));
+
+      // Trigger overall calculations
+      CalculateTotalAmount();
+      calculations();
+
+      // Update select all checkbox state
+      updateSelectAllState();
+  }
+
+  // Function to update the select all checkbox state based on individual checkboxes
+  function updateSelectAllState() {
+      var totalCheckboxes = $('.increase-checkbox').length;
+      var checkedCheckboxes = $('.increase-checkbox:checked').length;
+
+      var selectAllCheckbox = $('#selectAllIncrease');
+
+      if (checkedCheckboxes === 0) {
+          // None checked
+          selectAllCheckbox.prop('checked', false);
+          selectAllCheckbox.prop('indeterminate', false);
+      } else if (checkedCheckboxes === totalCheckboxes) {
+          // All checked
+          selectAllCheckbox.prop('checked', true);
+          selectAllCheckbox.prop('indeterminate', false);
+      } else {
+          // Some checked (indeterminate state)
+          selectAllCheckbox.prop('checked', false);
+          selectAllCheckbox.prop('indeterminate', true);
+      }
+  }
 
   function calculations () {
     var subTotal            = 0
@@ -680,12 +948,42 @@ $emptyCylinder=$db->getOne("empty_cylinders");
 
 
 
-        $("#addinvoiceItem").append('<tr class="invoice-row'+pac_id+'"><td style="width: 500px"><input name="package_name[]"  class="form-control form-control-sm productSelection"  required="" value="'+pro_full_name+'" autocomplete="off" tabindex="1" type="text"><input type="hidden" class="autocomplete_hidden_value" value="'+pac_id+'" name="package_id[]" ></td><td style="width: 150px;"><input name="empty_quantity[]" autocomplete="off" class="total_empty_qty_1 form-control form-control-sm mt-2" id="total_empty_qty_'+pac_id+'"  value="0" required="" placeholder="0.00" tabindex="3" type="number"></td><td style="width: 150px;"><input name="package_quantity[]" autocomplete="off" class="total_qty_1 form-control form-control-sm" id="total_qty_'+pac_id+'" onkeyup="quantity_calculate('+pac_id+');" value="1" required="" placeholder="0.00" tabindex="3" type="text"><input type="hidden" id="stock_qty'+pac_id+'" value="'+stockQty+'"/> </td><td style="width: 150px;"><input name="package_rate[]" value="'+pac_price+'" id="item_price_'+pac_id+'" class=" price_item form-control form-control-sm" tabindex="7" readonly="" type="text"></td><td style="width: 242px"><input class="total_price form-control form-control-sm" name="total_price[]" id="total_price_'+pac_id+'" value="'+pac_price+'" tabindex="-1" readonly="" type="text"></td><td><button  class="btn btn-danger btn-rounded btn-icon btn-del" type="button" onclick="deleteRow('+pac_id+')" value="Delete" tabindex="5"><i class="fa fa-trash"></i></button></td></tr>');
+        $("#addinvoiceItem").append('<tr class="invoice-row'+pac_id+'">'+
+            '<td class="text-center" style="width: 80px;">'+
+                '<input type="checkbox" class="increase-checkbox" id="increase_'+pac_id+'" data-product-id="'+pac_id+'" onchange="toggleIncrease('+pac_id+')" />'+
+                '<input type="hidden" id="base_price_'+pac_id+'" value="'+pac_price+'" />'+
+                '<input type="hidden" name="increase_flag[]" id="increase_flag_'+pac_id+'" value="0" />'+
+            '</td>'+
+            '<td style="width: 500px">'+
+                '<input name="package_name[]" class="form-control form-control-sm productSelection" required="" value="'+pro_full_name+'" autocomplete="off" tabindex="1" type="text">'+
+                '<input type="hidden" class="autocomplete_hidden_value" value="'+pac_id+'" name="package_id[]" />'+
+            '</td>'+
+            '<td style="width: 150px;">'+
+                '<input name="empty_quantity[]" autocomplete="off" class="total_empty_qty_1 form-control form-control-sm mt-2" id="total_empty_qty_'+pac_id+'" value="0" required="" placeholder="0.00" tabindex="3" type="number">'+
+            '</td>'+
+            '<td style="width: 150px;">'+
+                '<input name="package_quantity[]" autocomplete="off" class="total_qty_1 form-control form-control-sm" id="total_qty_'+pac_id+'" onkeyup="quantity_calculate('+pac_id+');" value="1" required="" placeholder="0.00" tabindex="3" type="text">'+
+                '<input type="hidden" id="stock_qty'+pac_id+'" value="'+stockQty+'"/>'+
+            '</td>'+
+            '<td style="width: 150px;">'+
+                '<input name="package_rate[]" value="'+pac_price+'" id="item_price_'+pac_id+'" class="price_item form-control form-control-sm" tabindex="7" readonly="" type="text">'+
+            '</td>'+
+            '<td style="width: 242px">'+
+                '<input class="total_price form-control form-control-sm" name="total_price[]" id="total_price_'+pac_id+'" value="'+pac_price+'" tabindex="-1" readonly="" type="text">'+
+            '</td>'+
+            '<td>'+
+                '<button class="btn btn-danger btn-rounded btn-icon btn-del" type="button" onclick="deleteRow('+pac_id+')" value="Delete" tabindex="5"><i class="fa fa-trash"></i></button>'+
+            '</td>'+
+        '</tr>');
 
         
         $(".select2-search__field").val('');
         
         CalculateTotalAmount();
+
+        // Update select all checkbox state when new row is added
+        updateSelectAllState();
+
         $(".js-example-basic-single").select2("open");
 
 
@@ -713,6 +1011,8 @@ $emptyCylinder=$db->getOne("empty_cylinders");
     $("#total_ammount_after_dis").val(result_dis);
     $("#grandTotal").val(total_price_update);
     invoice_paidamount();
+    // Trigger discount calculations when total amount changes
+    calculations();
 
   }
 
@@ -745,6 +1045,8 @@ $emptyCylinder=$db->getOne("empty_cylinders");
       var new_total=parseFloat(pro_qty) * parseFloat(pro_price);
       $("#total_price_"+pro_id+"").val(new_total);
       CalculateTotalAmount();
+      // Trigger discount calculations when cylinders are modified
+      calculations();
     } else{
       var pro_price=$("#item_price_"+pro_id+"").val();
       alert('Stock Quantity of This Product is '+StockQty+'');
@@ -752,6 +1054,8 @@ $emptyCylinder=$db->getOne("empty_cylinders");
       var new_total=parseFloat(StockQty) * parseFloat(pro_price);
       $("#total_price_"+pro_id+"").val(new_total);
       CalculateTotalAmount();
+      // Trigger discount calculations when cylinders are modified
+      calculations();
     }
     var flatDiscount = $("#pro_dis_flat"+pro_id+"").val();
     if(flatDiscount > 0)
@@ -783,6 +1087,9 @@ $emptyCylinder=$db->getOne("empty_cylinders");
 
     CalculateTotalAmount();
 
+    // update select all checkbox state after row removal
+    updateSelectAllState();
+
 
 
   }
@@ -793,8 +1100,10 @@ $emptyCylinder=$db->getOne("empty_cylinders");
       $(".js-example-basic-single").select2("open");
     });
     $(".invoice-row"+rem_id+"").remove();
-      // update grand total 
+      // update grand total
     CalculateTotalAmount();
+      // update select all checkbox state after row removal
+    updateSelectAllState();
       // set discount price given
     var total_dis_update=0;
     $(".total_discount").each(function(){

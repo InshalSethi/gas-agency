@@ -1,6 +1,6 @@
 <?php
 // views/db_functions.php
-$main_site = 'https://cylinder.ghulamsarwer.com/';
+$main_site = 'http://localhost/cylinder/';
 define ('WP_HOME',$main_site);
 date_default_timezone_set("Asia/Karachi");
 

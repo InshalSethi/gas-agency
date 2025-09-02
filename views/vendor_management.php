@@ -48,7 +48,7 @@ if (isset($_REQUEST['id'])) {
             $vendors=$db->get("vendors");
             foreach ($vendors as $vendor): ?>
                 <tr>
-                    <td><?php echo htmlspecialchars($vendor['name']); ?></td>
+                    <td><a href="vendor-ledger.php?id=<?php echo $vendor['id']; ?>" class="text-primary"><b><?php echo htmlspecialchars($vendor['name']); ?></b></a></td>
                     <td><?php echo htmlspecialchars($vendor['contact_info']); ?></td>
                     <td><?php echo htmlspecialchars($vendor['address']); ?></td>
                     <td>

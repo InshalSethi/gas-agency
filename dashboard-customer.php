@@ -20,8 +20,9 @@ $searchQuery = $_REQUEST['search']['value'];
 $start_date = date("Y-m-d", strtotime($_REQUEST['start_date']));
 $end_date = date("Y-m-d", strtotime($_REQUEST['end_date']));
 
-$cylinderFilter = $_REQUEST['cylinder_filter'];
+$statusFilter = $_REQUEST['status_filter'];
 $paymentFilter = $_REQUEST['payment_filter'];
+$cylinderFilter = $_REQUEST['cylinder_filter'];
 
 $totalRecords = 0;
 $cols = array(
@@ -35,6 +36,13 @@ $cols = array(
     "cus.name as customer"
 );
 $db->join("customers cus", "inv.customer_id=cus.id", "LEFT");
+
+// Add cylinder filter join if cylinder filter is applied
+if (!empty($cylinderFilter)) {
+    $db->join("invoice_items ii", "inv.id=ii.invoice_id", "INNER");
+    $db->join("cylinders cy", "ii.product_id=cy.id", "INNER");
+    $db->where("cy.id", $cylinderFilter);
+}
 
 $db->where("cus.deleted_at", NULL, 'IS');
 $db->where("inv.deleted_at", NULL, 'IS');
@@ -60,6 +68,10 @@ if (!empty($searchQuery)) {
 
 
 $db->orderBy("inv.id", "desc");
+// Use distinct to avoid duplicate invoices when filtering by cylinder
+if (!empty($cylinderFilter)) {
+    $db->groupBy("inv.id");
+}
 $invoices = $db->get('invoices inv', Array($row, $rowperpage), $cols);
 $totalRecords = $db->count;
 
@@ -128,10 +140,10 @@ foreach ($invoices as $invoice) {
         'actions' => '<a href="views/edit-invoice.php?id=' . $invoice['id'] . '" class="btn btn-warning btn-sm">Edit</a>'
     ];
 
-    if (!empty($cylinderFilter)) {
-        if ($cylinderFilter === 'empty_pending' && $totalInvCylinders > $totalEmptyCylinders) {
+    if (!empty($statusFilter)) {
+        if ($statusFilter === 'empty_pending' && $totalInvCylinders > $totalEmptyCylinders) {
             $data[] = $pushData;
-        } elseif ($cylinderFilter === 'empty_received' && $totalInvCylinders <= $totalEmptyCylinders) {
+        } elseif ($statusFilter === 'empty_received' && $totalInvCylinders <= $totalEmptyCylinders) {
             $data[] = $pushData;
         }
     } else {

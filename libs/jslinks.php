@@ -38,10 +38,27 @@
 <script type="text/javascript" src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
 <script src="<?php echo baseurl('js/bootstrap.min.js'); ?>"></script>
 <script src="<?php echo baseurl('js/popper.min.js'); ?>"></script>
+<!-- Date Range Picker JS -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 <script>
     $(document).ready(function() {
       $(".navbar-toggler").click(function() {
         $(".sidebar").toggle();
+
+        // Toggle the icon and background color
+        var $toggler = $(this);
+        var $icon = $toggler.find('.navbar-toggler-icon');
+
+        if ($(".sidebar").is(':visible')) {
+          // Sidebar is open - show cross icon and white background
+          $toggler.addClass('sidebar-open');
+          $icon.html('&times;'); // Cross symbol
+        } else {
+          // Sidebar is closed - show hamburger icon and default background
+          $toggler.removeClass('sidebar-open');
+          $icon.html(''); // Reset to default hamburger
+        }
     });
         $('#changePasswordModal').on('click', function(event){
         event.preventDefault(); // Prevent the default action

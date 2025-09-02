@@ -87,6 +87,39 @@ $vendors = fetchAllVendors();
   .content {
       padding: 20px;
   }
+
+  /* Mobile styles */
+  @media (min-width: 302px) and (max-width: 1023px) {
+    body {
+      padding-top: 0px;
+      padding-left: 0px;
+    }
+    .sidebar{
+      display: none;
+    }
+
+    /* Mobile navbar toggler styles */
+    .navbar-toggler.sidebar-open {
+      background-color: white !important;
+      border-color: #dee2e6;
+    }
+
+    .navbar-toggler.sidebar-open .navbar-toggler-icon {
+      background-image: none;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    .navbar-toggler .navbar-toggler-icon {
+      transition: all 0.3s ease;
+    }
+  }
 </style>
 <script>
     function toggleNewVendor() {

@@ -149,7 +149,7 @@ foreach ($customerIds as $customerId) {
     $empStock = [];
 
     // Parse purchased stock - exactly like original code
-    if (!empty($getStockDetails['qty_stock'])) {
+    if ($getStockDetails && !empty($getStockDetails['qty_stock'])) {
         $qtyStockArray = explode(',', $getStockDetails['qty_stock']);
         foreach ($qtyStockArray as $item) {
             preg_match('/(.+?)\((\d+)\)/', trim($item), $matches);
@@ -160,7 +160,7 @@ foreach ($customerIds as $customerId) {
     }
 
     // Parse empty stock - exactly like original code
-    if (!empty($getStockDetails['empty_stock'])) {
+    if ($getStockDetails && !empty($getStockDetails['empty_stock'])) {
         $emptyStockArray = explode(',', $getStockDetails['empty_stock']);
         foreach ($emptyStockArray as $item) {
             preg_match('/(.+?)\((\d+)\)/', trim($item), $matches);
@@ -173,8 +173,8 @@ foreach ($customerIds as $customerId) {
     $stockSummaries[$customerId] = [
         'purchased' => $purStock,
         'empty' => $empStock,
-        'purchased_str' => $getStockDetails['qty_stock'] ?: '',
-        'empty_str' => $getStockDetails['empty_stock'] ?: ''
+        'purchased_str' => ($getStockDetails && isset($getStockDetails['qty_stock'])) ? $getStockDetails['qty_stock'] : '',
+        'empty_str' => ($getStockDetails && isset($getStockDetails['empty_stock'])) ? $getStockDetails['empty_stock'] : ''
     ];
 }
 

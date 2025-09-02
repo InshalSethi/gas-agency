@@ -72,7 +72,7 @@ foreach( $invoices as $invoice ){
     }
     $data[] = [
         'id' => $invoice['id'],
-        'vendor' => $invoice['vendor'],
+        'vendor' => '<a href="vendor-ledger.php?id=' . $invoice['vendor_id'] . '" class="text-primary"><b>' . $invoice['vendor'] . '</b></a>',
         'empty_cylinders' => $totalEmptyCylinders,
         'total_cylinders' => $totalInvCylinders,
         'date' => date("d-m-Y", strtotime($invoice['date'])),

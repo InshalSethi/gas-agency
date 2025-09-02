@@ -128,6 +128,14 @@ if (isset($_REQUEST['id'])) {
                         <label for="add_bonus_cylinders">Bonus Cylinders</label>
                         <input type="number" id="add_bonus_cylinders" name="bonus_cylinders" class="form-control">
                     </div>
+                    <div class="form-group">
+                        <label for="add_percentage_discount">Percentage Discount (%)</label>
+                        <input type="number" id="add_percentage_discount" name="percentage_discount" class="form-control" value="0" min="0" max="100" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="add_percentage_increase">Percentage Increase (%)</label>
+                        <input type="number" id="add_percentage_increase" name="percentage_increase" class="form-control" value="0" min="0" max="100" step="0.01">
+                    </div>
                     <h5>Cutomer Security</h5>
                     <div class="form-group" style="display:none;">
                         <label for="add_security_type">Security Type</label>
@@ -193,6 +201,14 @@ if (isset($_REQUEST['id'])) {
                         <input type="number" id="edit_bonus_cylinders" name="bonus_cylinders" class="form-control">
                     </div>
                     <div class="form-group">
+                        <label for="edit_percentage_discount">Percentage Discount (%)</label>
+                        <input type="number" id="edit_percentage_discount" name="percentage_discount" class="form-control" min="0" max="100" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_percentage_increase">Percentage Increase (%)</label>
+                        <input type="number" id="edit_percentage_increase" name="percentage_increase" class="form-control" min="0" max="100" step="0.01">
+                    </div>
+                    <div class="form-group">
                         <label for="edit_security_type">Security Type</label>
                         <select id="edit_security_type" name="security_type" class="form-control" required>
                             <option value="Person">Person</option>
@@ -253,7 +269,7 @@ if (isset($_REQUEST['id'])) {
             processing: true,
             serverSide: true,
             "paging":   true,
-            "iDisplayLength": 100,
+            "iDisplayLength": 50,
             "ajax": {
                 "url": "fetch_customers.php",
                 "type": "GET",
@@ -374,6 +390,8 @@ if (isset($_REQUEST['id'])) {
             $('#edit_phone').val(customerData.phone);
             $('#edit_cnic').val(customerData.cnic);
             $('#edit_bonus_cylinders').val(customerData.bonus_cylinders);
+            $('#edit_percentage_discount').val(customerData.percentage_discount || 0);
+            $('#edit_percentage_increase').val(customerData.percentage_increase || 0);
             $('#edit_security_type').val(customerData.security_type).change();
             $('#edit_person_name').val(customerData.person_name);
             $('#edit_person_cnic').val(customerData.person_cnic);

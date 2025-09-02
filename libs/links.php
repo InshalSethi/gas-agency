@@ -6,6 +6,8 @@
   <link rel="stylesheet" type="text/css" href="<?php echo baseurl('css/styles.css') ?>">
   <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" /> -->
   <link rel="stylesheet" type="text/css" href="<?php echo baseurl('css/font-awesome/css/all.min.css') ?>">
+  <!-- Date Range Picker CSS -->
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
   <style>
     .bg-red{
       background-color: #f29d9d !important;
@@ -321,6 +323,28 @@ body {
   }
   .dataTables_wrapper {
       overflow: scroll;
+  }
+
+  /* Mobile navbar toggler styles */
+  .navbar-toggler.sidebar-open {
+    background-color: white !important;
+    border-color: #dee2e6;
+  }
+
+  .navbar-toggler.sidebar-open .navbar-toggler-icon {
+    background-image: none;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  .navbar-toggler .navbar-toggler-icon {
+    transition: all 0.3s ease;
   }
   .container-fluid{
     margin-top: 80px !important;
