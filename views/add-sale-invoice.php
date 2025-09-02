@@ -391,87 +391,96 @@ require '../config/auth.php';
         // Auto-apply customer discount when customer is selected
         $('.customer_name').on('change', function() {
             var customer_id = $(this).val();
+            currentCustomerId = customer_id; // Store current customer ID
+            // console.log('DEBUG: Customer selected, ID:', customer_id);
             if (customer_id) {
-                fetchCustomerDiscount(customer_id);
+                // Clear product rate adjustments cache when customer changes
+                productRateAdjustments = {};
+
+                // Fetch product-specific rates for all existing products in the invoice
+                fetchRatesForExistingProducts(customer_id);
             } else {
-                // Reset discount if no customer selected
-                $('#perc_discount').val(0);
+                currentCustomerId = 0;
+                productRateAdjustments = {};
                 calculations();
             }
         });
     });
 
-    // Global variable to store customer percentage increase
-    var customerPercentageIncrease = 0;
+    // Global variables for product-specific rates
+    var currentCustomerId = 0;
+    var productRateAdjustments = {}; // Store product-specific rates
 
-    // Function to fetch customer discount via AJAX
-    function fetchCustomerDiscount(customer_id) {
-        $.ajax({
-            url: 'get-customer-discount.php',
-            type: 'GET',
-            data: { customer_id: customer_id },
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    // Store customer percentage increase globally
-                    customerPercentageIncrease = response.data.percentage_increase || 0;
+    // Function to fetch product-specific rates for all existing products in the invoice
+    function fetchRatesForExistingProducts(customer_id) {
+        console.log('DEBUG: Fetching rates for existing products, customer_id:', customer_id);
 
-                    // Auto-populate percentage discount
-                    var discount = response.data.percentage_discount || 0;
-                    $('#perc_discount').val(discount);
+        // Find all existing products in the invoice table
+        $('#addinvoiceItem tr').each(function() {
+            var row = $(this);
+            var productIdInput = row.find('input[name="package_id[]"]');
 
-                    // Clear flat discount to avoid conflicts
-                    $('#flat_discount').val(0);
+            if (productIdInput.length > 0) {
+                var product_id = productIdInput.val();
+                console.log('DEBUG: Found existing product:', product_id);
 
-                    // Remove readonly attributes to ensure calculation works
-                    $('#perc_discount').removeAttr('readonly');
-                    $('#flat_discount').removeAttr('readonly');
-
-                    // Add visual feedback for auto-applied discount
-                    if (discount > 0) {
-                        $('#perc_discount').addClass('border-success');
-                        setTimeout(function() {
-                            $('#perc_discount').removeClass('border-success');
-                        }, 2000);
-                    }
-
-                    // Force trigger calculations multiple times to ensure it works
-                    setTimeout(function() {
-                        calculations();
-                    }, 100);
-
-                    // Also trigger change event on discount field
-                    $('#perc_discount').trigger('change');
-                    $('#perc_discount').trigger('keyup');
-
-                    console.log('Customer discount applied:', discount + '%');
-                    console.log('Customer increase available:', customerPercentageIncrease + '%');
-
-                    // Update base prices for existing cylinders when customer is selected
-                    updateExistingCylinderBasePrices();
-                } else {
-                    console.error('Error fetching customer discount:', response.message);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('AJAX error fetching customer discount:', error);
+                // Fetch rates for this product
+                fetchProductRateAdjustment(customer_id, product_id, function(rateData) {
+                    console.log('DEBUG: Retroactively cached rates for product', product_id, ':', rateData);
+                });
             }
         });
     }
 
-    // Function to update base prices for existing cylinders when customer is selected
-    function updateExistingCylinderBasePrices() {
-        $('.increase-checkbox').each(function() {
-            var checkbox = $(this);
-            var product_id = checkbox.data('product-id');
-            var currentRate = parseFloat($('#item_price_' + product_id).val());
+    // Function to fetch product-specific rate adjustments
+    function fetchProductRateAdjustment(customer_id, product_id, callback) {
+        console.log('DEBUG: fetchProductRateAdjustment called with customer_id:', customer_id, 'product_id:', product_id);
 
-            // Update the base price to current rate (in case it was already modified)
-            $('#base_price_' + product_id).val(currentRate);
+        // Check cache first
+        var cacheKey = customer_id + '_' + product_id;
+        if (productRateAdjustments[cacheKey]) {
+            console.log('DEBUG: Using cached data for', cacheKey);
+            callback(productRateAdjustments[cacheKey]);
+            return;
+        }
 
-            console.log('Updated base price for product ' + product_id + ': ' + currentRate);
+        console.log('DEBUG: Making AJAX request to get-product-rate-adjustment.php');
+        $.ajax({
+            url: 'get-product-rate-adjustment.php',
+            type: 'GET',
+            data: {
+                customer_id: customer_id,
+                product_id: product_id
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    // Cache the result
+                    productRateAdjustments[cacheKey] = response.data;
+                    callback(response.data);
+                } else {
+                    console.error('Error fetching product rate adjustment:', response.message);
+                    // Fallback to customer general rates
+                    callback({
+                        percentage_discount: 0,
+                        percentage_increase: customerPercentageIncrease,
+                        source: 'fallback'
+                    });
+                }
+            },
+            error: function() {
+                console.error('AJAX error fetching product rate adjustment');
+                // Fallback to customer general rates
+                callback({
+                    percentage_discount: 0,
+                    percentage_increase: customerPercentageIncrease,
+                    source: 'fallback'
+                });
+            }
         });
     }
+
+
 
     // Function to toggle all percentage increases
     function toggleAllIncrease() {
@@ -501,10 +510,34 @@ require '../config/auth.php';
         var quantity = parseFloat($('#total_qty_' + product_id).val()) || 1;
 
         if (checkbox.is(':checked')) {
-            // Apply percentage increase
-            if (customerPercentageIncrease > 0) {
-                var increasedRate = basePrice + (basePrice * customerPercentageIncrease / 100);
-                $('#item_price_' + product_id).val(increasedRate.toFixed(2));
+            // Check if customer is selected
+            if (!currentCustomerId || currentCustomerId == '') {
+                alert("Please select a customer first to apply product-specific pricing");
+                checkbox.prop('checked', false);
+                return;
+            }
+
+            // Fetch product-specific rate adjustments
+            fetchProductRateAdjustment(currentCustomerId, product_id, function(rateData) {
+                console.log('DEBUG: toggleIncrease - Rate data for product', product_id, ':', rateData);
+
+                // Apply product-specific pricing
+                var adjustedPrice = basePrice;
+
+                // Apply percentage increase first (if any)
+                if (rateData.percentage_increase > 0) {
+                    adjustedPrice = adjustedPrice * (1 + (rateData.percentage_increase / 100));
+                }
+
+                // Apply percentage discount (if any)
+                if (rateData.percentage_discount > 0) {
+                    adjustedPrice = adjustedPrice * (1 - (rateData.percentage_discount / 100));
+                }
+
+                // Round to 2 decimal places
+                adjustedPrice = Math.round(adjustedPrice * 100) / 100;
+
+                $('#item_price_' + product_id).val(adjustedPrice.toFixed(2));
 
                 // Update hidden field to indicate increase is applied
                 $('#increase_flag_' + product_id).val('1');
@@ -515,8 +548,18 @@ require '../config/auth.php';
                     $('#item_price_' + product_id).removeClass('border-warning');
                 }, 1500);
 
-                console.log('Increase applied to product ' + product_id + ': ' + customerPercentageIncrease + '%');
-            }
+                // Recalculate total for this item
+                var newRate = parseFloat($('#item_price_' + product_id).val());
+                var quantity = parseFloat($('#total_qty_' + product_id).val()) || 1;
+                var newTotal = quantity * newRate;
+                $('#total_price_' + product_id).val(newTotal.toFixed(2));
+
+                // Trigger overall calculations
+                CalculateTotalAmount();
+                calculations();
+
+                console.log('Product-specific rates applied to product ' + product_id + ': discount=' + rateData.percentage_discount + '%, increase=' + rateData.percentage_increase + '%');
+            }); // End of fetchProductRateAdjustment callback
         } else {
             // Revert to base price
             $('#item_price_' + product_id).val(basePrice.toFixed(2));
@@ -524,17 +567,18 @@ require '../config/auth.php';
             // Update hidden field to indicate increase is not applied
             $('#increase_flag_' + product_id).val('0');
 
-            console.log('Increase removed from product ' + product_id);
+            // Recalculate total for this item
+            var quantity = parseFloat($('#total_qty_' + product_id).val()) || 1;
+            var newRate = parseFloat($('#item_price_' + product_id).val());
+            var newTotal = quantity * newRate;
+            $('#total_price_' + product_id).val(newTotal.toFixed(2));
+
+            // Trigger overall calculations
+            CalculateTotalAmount();
+            calculations();
+
+            console.log('Reverted to base price for product ' + product_id);
         }
-
-        // Recalculate total for this item
-        var newRate = parseFloat($('#item_price_' + product_id).val());
-        var newTotal = quantity * newRate;
-        $('#total_price_' + product_id).val(newTotal.toFixed(2));
-
-        // Trigger overall calculations
-        CalculateTotalAmount();
-        calculations();
 
         // Update select all checkbox state
         updateSelectAllState();
@@ -668,19 +712,25 @@ $(".js-example-basic-single").change(function(){
     var pac_id = $(this).children("option:selected").val();
 
     if (pac_id != '') {
-
-
       var pac_price = $('option:selected', this).attr('package-price');
       var stockQty = $('option:selected', this).attr('stock-qty');
       var pac_name=$('option:selected', this).attr('package-name');
 
-      var pro_full_name = pac_name 
+      var pro_full_name = pac_name
 
       if ($('tr').hasClass('invoice-row'+pac_id+'')) {
         alert("This Product Already Added In Invoice");
-    } else{
-
-
+      } else {
+        // Pre-fetch product-specific rate adjustments if customer is already selected
+        if (currentCustomerId && currentCustomerId != '') {
+          console.log('DEBUG: Customer ID:', currentCustomerId, 'Product ID:', pac_id);
+          fetchProductRateAdjustment(currentCustomerId, pac_id, function(rateData) {
+            console.log('DEBUG: Rate data cached for product ' + pac_id + ':', rateData);
+            // Don't apply pricing here - just cache the data for when checkbox is checked
+          });
+        } else {
+          console.log('DEBUG: No customer selected yet, will fetch rates when customer is selected');
+        }
 
         $("#addinvoiceItem").append('<tr class="invoice-row'+pac_id+'">'+
             '<td class="text-center" style="width: 80px;">'+
@@ -719,14 +769,11 @@ $(".js-example-basic-single").change(function(){
         updateSelectAllState();
 
         $(".js-example-basic-single").select2("open");
-
-
+      }
+    } else {
+      var text='Please Select Valid Item!';
+      showToast('error',text,'Notification');
     }
-} else{
-  var text='Please Select Valid Item!';
-  showToast('error',text,'Notification');
-}
-
 });
 
 

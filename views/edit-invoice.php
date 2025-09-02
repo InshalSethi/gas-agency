@@ -439,18 +439,43 @@ $emptyCylinder=$db->getOne("empty_cylinders");
                           <td class="text-center" style="width: 80px;">
                             <input type="checkbox" class="increase-checkbox" id="increase_<?php echo $de['product_id']; ?>" data-product-id="<?php echo $de['product_id']; ?>" onchange="toggleIncrease(<?php echo $de['product_id']; ?>)" <?php echo (isset($de['increase']) && $de['increase'] == 1) ? 'checked' : ''; ?> />
                             <?php
-                            // Calculate base price: if increase was applied, reverse it to get original base price
+                            // Calculate base price: if increase was applied, reverse it using product-specific rates
                             $currentRate = $de['rate'];
                             $basePrice = $currentRate;
 
-                            // Get customer's percentage increase to calculate base price
+                            // Get product-specific rates to calculate base price
                             if (isset($de['increase']) && $de['increase'] == 1) {
-                                $db->where('id', $invoice['customer_id']);
-                                $customerData = $db->getOne('customers', 'percentage_increase');
-                                if ($customerData && $customerData['percentage_increase'] > 0) {
-                                    $percentageIncrease = $customerData['percentage_increase'];
-                                    // Reverse the increase: base_price = current_rate / (1 + percentage/100)
-                                    $basePrice = $currentRate / (1 + ($percentageIncrease / 100));
+                                // First try to get product-specific rates
+                                $db->where('customer_id', $invoice['customer_id']);
+                                $db->where('product_id', $de['product_id']);
+                                $productRateData = $db->getOne('customer_rate_adjustment_products');
+
+                                if ($productRateData) {
+                                    // Use product-specific rates
+                                    $percentageIncrease = $productRateData['percentage_increase'];
+                                    $percentageDiscount = $productRateData['percentage_discount'];
+
+                                    // Reverse the calculation: work backwards from current rate to base price
+                                    // current_rate = base_price * (1 + increase/100) * (1 - discount/100)
+                                    $multiplier = 1;
+                                    if ($percentageIncrease > 0) {
+                                        $multiplier *= (1 + ($percentageIncrease / 100));
+                                    }
+                                    if ($percentageDiscount > 0) {
+                                        $multiplier *= (1 - ($percentageDiscount / 100));
+                                    }
+
+                                    if ($multiplier != 1) {
+                                        $basePrice = $currentRate / $multiplier;
+                                    }
+                                } else {
+                                    // Fallback to customer general rates (old system)
+                                    $db->where('id', $invoice['customer_id']);
+                                    $customerData = $db->getOne('customers', 'percentage_increase');
+                                    if ($customerData && $customerData['percentage_increase'] > 0) {
+                                        $percentageIncrease = $customerData['percentage_increase'];
+                                        $basePrice = $currentRate / (1 + ($percentageIncrease / 100));
+                                    }
                                 }
                             }
                             ?>
@@ -612,22 +637,26 @@ $emptyCylinder=$db->getOne("empty_cylinders");
       // Auto-apply customer discount when customer is selected (but preserve existing discounts)
       $('.customer_name').on('change', function() {
           var customer_id = $(this).val();
+          currentCustomerId = customer_id; // Store current customer ID
           if (customer_id) {
+              // Clear product rate adjustments cache when customer changes
+              productRateAdjustments = {};
+
+              // Fetch product-specific rates for all existing products in the invoice
+              fetchRatesForExistingProducts(customer_id);
+
               // Check if this is a new customer selection or just page load
               var currentFlatDiscount = parseFloat($('#flat_discount').val()) || 0;
               var currentPercDiscount = parseFloat($('#perc_discount').val()) || 0;
 
-              // Only apply customer defaults if no existing discounts
-              if (currentFlatDiscount === 0 && currentPercDiscount === 0) {
-                  fetchCustomerDiscount(customer_id);
-              } else {
-                  // Just load the customer data without overriding discounts
-                  fetchCustomerDiscountForEdit(customer_id);
-              }
+              // No need for old customer-level discount logic
+              // Product-specific rates are handled separately
           } else {
               // Reset discount if no customer selected
               $('#perc_discount').val(0);
               $('#flat_discount').val(0);
+              currentCustomerId = 0;
+              productRateAdjustments = {};
               calculations();
           }
       });
@@ -637,9 +666,7 @@ $emptyCylinder=$db->getOne("empty_cylinders");
 
       // Load customer percentage increase on page load (but don't override existing discounts)
       var initialCustomerId = $('.customer_name').val();
-      if (initialCustomerId) {
-          fetchCustomerDiscountForEdit(initialCustomerId);
-      }
+      currentCustomerId = initialCustomerId; // Initialize current customer ID
 
       // Initialize discount field states on page load
       initializeDiscountFields();
@@ -666,8 +693,9 @@ $emptyCylinder=$db->getOne("empty_cylinders");
       });
   });
 
-  // Global variable to store customer percentage increase
-  var customerPercentageIncrease = 0;
+  // Global variables for product-specific rates
+  var currentCustomerId = 0;
+  var productRateAdjustments = {}; // Store product-specific rates
 
   // Function to initialize discount fields on page load
   function initializeDiscountFields() {
@@ -688,122 +716,78 @@ $emptyCylinder=$db->getOne("empty_cylinders");
       }
   }
 
-  // Function to ensure customer percentage increase is loaded
-  function ensureCustomerPercentageIncrease() {
-      if (customerPercentageIncrease === 0) {
-          var currentCustomerId = $('.customer_name').val();
-          if (currentCustomerId) {
-              console.log('Customer percentage increase not loaded, fetching for customer ID: ' + currentCustomerId);
-              fetchCustomerDiscount(currentCustomerId);
+
+
+
+
+  // Function to fetch product-specific rates for all existing products in the invoice
+  function fetchRatesForExistingProducts(customer_id) {
+      console.log('DEBUG: Fetching rates for existing products, customer_id:', customer_id);
+
+      // Find all existing products in the invoice table (both old and new items)
+      $('#addinvoiceItem tr').each(function() {
+          var row = $(this);
+          var productIdInput = row.find('input[name="package_id[]"], input[name="old_package_id[]"]');
+
+          if (productIdInput.length > 0) {
+              var product_id = productIdInput.val();
+              console.log('DEBUG: Found existing product:', product_id);
+
+              // Fetch rates for this product
+              fetchProductRateAdjustment(customer_id, product_id, function(rateData) {
+                  console.log('DEBUG: Retroactively cached rates for product', product_id, ':', rateData);
+              });
           }
-      }
+      });
   }
 
-  // Function to fetch customer discount for edit page (preserves existing discounts)
-  function fetchCustomerDiscountForEdit(customer_id) {
+  // Function to fetch product-specific rate adjustments
+  function fetchProductRateAdjustment(customer_id, product_id, callback) {
+      // Check cache first
+      var cacheKey = customer_id + '_' + product_id;
+      if (productRateAdjustments[cacheKey]) {
+          callback(productRateAdjustments[cacheKey]);
+          return;
+      }
+
       $.ajax({
-          url: 'get-customer-discount.php',
+          url: 'get-product-rate-adjustment.php',
           type: 'GET',
-          data: { customer_id: customer_id },
+          data: {
+              customer_id: customer_id,
+              product_id: product_id
+          },
           dataType: 'json',
           success: function(response) {
               if (response.success) {
-                  // Store customer percentage increase globally (needed for calculations)
-                  customerPercentageIncrease = response.data.percentage_increase || 0;
-                  console.log('Customer percentage increase loaded for edit:', customerPercentageIncrease + '%');
-
-                  // DON'T override existing discount values on edit page
-                  // Just ensure the fields are properly initialized
-                  initializeDiscountFields();
+                  // Cache the result
+                  productRateAdjustments[cacheKey] = response.data;
+                  callback(response.data);
+              } else {
+                  console.error('Error fetching product rate adjustment:', response.message);
+                  // Fallback to customer general rates
+                  callback({
+                      percentage_discount: 0,
+                      percentage_increase: customerPercentageIncrease,
+                      source: 'fallback'
+                  });
               }
           },
           error: function() {
-              console.log('Error fetching customer discount data');
-              // Initialize fields anyway
-              initializeDiscountFields();
+              console.error('AJAX error fetching product rate adjustment');
+              // No fallback needed - use base price only
+              callback({
+                  percentage_discount: 0,
+                  percentage_increase: 0,
+                  source: 'no_rates_found'
+              });
           }
       });
   }
 
-  // Function to fetch customer discount via AJAX (for new invoices)
-  function fetchCustomerDiscount(customer_id) {
-      $.ajax({
-          url: 'get-customer-discount.php',
-          type: 'GET',
-          data: { customer_id: customer_id },
-          dataType: 'json',
-          success: function(response) {
-              if (response.success) {
-                  // Store customer percentage increase globally
-                  customerPercentageIncrease = response.data.percentage_increase || 0;
 
-                  // Auto-populate percentage discount
-                  var discount = response.data.percentage_discount || 0;
-                  $('#perc_discount').val(discount);
 
-                  // Clear flat discount to avoid conflicts
-                  $('#flat_discount').val(0);
 
-                  // Remove readonly attributes to ensure calculation works
-                  $('#perc_discount').removeAttr('readonly');
-                  $('#flat_discount').removeAttr('readonly');
-
-                  // Add visual feedback for auto-applied discount
-                  if (discount > 0) {
-                      $('#perc_discount').addClass('border-success');
-                      setTimeout(function() {
-                          $('#perc_discount').removeClass('border-success');
-                      }, 2000);
-                  }
-
-                  // Force trigger calculations multiple times to ensure it works
-                  setTimeout(function() {
-                      calculations();
-                  }, 100);
-
-                  // Also trigger change event on discount field
-                  $('#perc_discount').trigger('change');
-                  $('#perc_discount').trigger('keyup');
-
-                  console.log('Customer discount applied:', discount + '%');
-                  console.log('Customer increase available:', customerPercentageIncrease + '%');
-
-                  // Update base prices for existing cylinders when customer is selected
-                  updateExistingCylinderBasePrices();
-              } else {
-                  console.error('Error fetching customer discount:', response.message);
-              }
-          },
-          error: function(xhr, status, error) {
-              console.error('AJAX error fetching customer discount:', error);
-          }
-      });
-  }
-
-  // Function to update base prices for existing cylinders when customer is selected
-  function updateExistingCylinderBasePrices() {
-      $('.increase-checkbox').each(function() {
-          var checkbox = $(this);
-          var product_id = checkbox.data('product-id');
-          var currentRate = parseFloat($('#item_price_' + product_id).val());
-          var currentBasePrice = parseFloat($('#base_price_' + product_id).val());
-
-          // Only update base price if checkbox is not checked AND base price seems incorrect
-          // (to avoid overwriting correct base price)
-          if (!checkbox.is(':checked')) {
-              $('#base_price_' + product_id).val(currentRate);
-              console.log('Updated base price for product ' + product_id + ': ' + currentRate);
-          } else {
-              // For checked items, ensure base price is correct (should be lower than current rate)
-              if (customerPercentageIncrease > 0 && currentBasePrice >= currentRate) {
-                  // Calculate correct base price from current increased rate
-                  var correctBasePrice = currentRate / (1 + (customerPercentageIncrease / 100));
-                  $('#base_price_' + product_id).val(correctBasePrice.toFixed(2));
-                  console.log('Corrected base price for checked product ' + product_id + ': ' + correctBasePrice.toFixed(2));
-              }
-          }
-      });
-  }
 
   // Function to toggle all percentage increases
   function toggleAllIncrease() {
@@ -827,21 +811,42 @@ $emptyCylinder=$db->getOne("empty_cylinders");
 
   // Function to toggle percentage increase for specific item
   function toggleIncrease(product_id) {
-      // Ensure customer percentage increase is loaded
-      ensureCustomerPercentageIncrease();
-
       var checkbox = $('#increase_' + product_id);
       var basePrice = parseFloat($('#base_price_' + product_id).val());
       var currentRate = parseFloat($('#item_price_' + product_id).val());
       var quantity = parseFloat($('#total_qty_' + product_id).val()) || 1;
 
-      console.log('Toggle increase for product ' + product_id + ': basePrice=' + basePrice + ', currentRate=' + currentRate + ', customerIncrease=' + customerPercentageIncrease + '%');
+      console.log('Toggle increase for product ' + product_id + ': basePrice=' + basePrice + ', currentRate=' + currentRate);
 
       if (checkbox.is(':checked')) {
-          // Apply percentage increase
-          if (customerPercentageIncrease > 0) {
-              var increasedRate = basePrice + (basePrice * customerPercentageIncrease / 100);
-              $('#item_price_' + product_id).val(increasedRate.toFixed(2));
+          // Check if customer is selected
+          if (!currentCustomerId || currentCustomerId == '') {
+              alert("Please select a customer first to apply product-specific pricing");
+              checkbox.prop('checked', false);
+              return;
+          }
+
+          // Fetch product-specific rate adjustments
+          fetchProductRateAdjustment(currentCustomerId, product_id, function(rateData) {
+              console.log('DEBUG: toggleIncrease - Rate data for product', product_id, ':', rateData);
+
+              // Apply product-specific pricing
+              var adjustedPrice = basePrice;
+
+              // Apply percentage increase first (if any)
+              if (rateData.percentage_increase > 0) {
+                  adjustedPrice = adjustedPrice * (1 + (rateData.percentage_increase / 100));
+              }
+
+              // Apply percentage discount (if any)
+              if (rateData.percentage_discount > 0) {
+                  adjustedPrice = adjustedPrice * (1 - (rateData.percentage_discount / 100));
+              }
+
+              // Round to 2 decimal places
+              adjustedPrice = Math.round(adjustedPrice * 100) / 100;
+
+              $('#item_price_' + product_id).val(adjustedPrice.toFixed(2));
 
               // Update hidden field to indicate increase is applied
               // Check if it's an old item or new item
@@ -857,13 +862,39 @@ $emptyCylinder=$db->getOne("empty_cylinders");
                   $('#item_price_' + product_id).removeClass('border-warning');
               }, 1500);
 
-              console.log('Increase applied to product ' + product_id + ': ' + customerPercentageIncrease + '%');
-          } else {
-              console.warn('Cannot apply increase: customerPercentageIncrease is ' + customerPercentageIncrease);
-          }
+              // Recalculate total for this item
+              var newRate = parseFloat($('#item_price_' + product_id).val());
+              var quantity = parseFloat($('#total_qty_' + product_id).val()) || 1;
+              var newTotal = quantity * newRate;
+              $('#total_price_' + product_id).val(newTotal.toFixed(2));
+
+              // Trigger overall calculations
+              CalculateTotalAmount();
+              calculations();
+
+              console.log('Product-specific rates applied to product ' + product_id + ': discount=' + rateData.percentage_discount + '%, increase=' + rateData.percentage_increase + '%');
+          }); // End of fetchProductRateAdjustment callback
       } else {
-          // Revert to base price
-          $('#item_price_' + product_id).val(basePrice.toFixed(2));
+          // Revert to base price - get the original base price from hidden field
+          var originalBasePrice = parseFloat($('#base_price_' + product_id).val());
+
+          // Robust fallback mechanism
+          if (isNaN(originalBasePrice) || originalBasePrice <= 0) {
+              console.warn('Base price not found or invalid for product ' + product_id + ', using fallback methods');
+
+              // Try to get from old item price field (for existing invoice items)
+              var oldItemPrice = parseFloat($('#old_item_price_' + product_id).val());
+              if (!isNaN(oldItemPrice) && oldItemPrice > 0) {
+                  originalBasePrice = oldItemPrice;
+                  console.log('Using old item price as base price:', originalBasePrice);
+              } else {
+                  // Last resort: use the basePrice variable (though it might be incorrect)
+                  originalBasePrice = basePrice;
+                  console.log('Using calculated basePrice as fallback:', originalBasePrice);
+              }
+          }
+
+          $('#item_price_' + product_id).val(originalBasePrice.toFixed(2));
 
           // Update hidden field to indicate increase is not applied
           // Check if it's an old item or new item
@@ -873,7 +904,19 @@ $emptyCylinder=$db->getOne("empty_cylinders");
               $('#increase_flag_' + product_id).val('0');
           }
 
-          console.log('Increase removed from product ' + product_id);
+          // Recalculate total for this item
+          var quantity = parseFloat($('#total_qty_' + product_id).val()) || 1;
+          var newRate = parseFloat($('#item_price_' + product_id).val());
+          var newTotal = quantity * newRate;
+          $('#total_price_' + product_id).val(newTotal.toFixed(2));
+
+          // Trigger overall calculations
+          CalculateTotalAmount();
+          calculations();
+
+          console.log('Reverted to base price for product ' + product_id + ': ' + originalBasePrice + ' (was: ' + currentRate + ')');
+
+          console.log('Reverted to base price for product ' + product_id);
       }
 
       // Recalculate total for this item
@@ -1017,19 +1060,25 @@ $emptyCylinder=$db->getOne("empty_cylinders");
     var pac_id = $(this).children("option:selected").val();
 
     if (pac_id != '') {
-
-
       var pac_price = $('option:selected', this).attr('package-price');
       var stockQty = $('option:selected', this).attr('stock-qty');
       var pac_name=$('option:selected', this).attr('package-name');
 
-      var pro_full_name = pac_name 
+      var pro_full_name = pac_name
 
       if ($('tr').hasClass('invoice-row'+pac_id+'')) {
         alert("This Product Already Added In Invoice");
-      } else{
-
-
+      } else {
+        // Pre-fetch product-specific rate adjustments if customer is already selected
+        if (currentCustomerId && currentCustomerId != '') {
+          console.log('DEBUG: Customer ID:', currentCustomerId, 'Product ID:', pac_id);
+          fetchProductRateAdjustment(currentCustomerId, pac_id, function(rateData) {
+            console.log('DEBUG: Rate data cached for product ' + pac_id + ':', rateData);
+            // Don't apply pricing here - just cache the data for when checkbox is checked
+          });
+        } else {
+          console.log('DEBUG: No customer selected yet, will fetch rates when customer is selected');
+        }
 
         $("#addinvoiceItem").append('<tr class="invoice-row'+pac_id+'">'+
             '<td class="text-center" style="width: 80px;">'+
@@ -1068,14 +1117,11 @@ $emptyCylinder=$db->getOne("empty_cylinders");
         updateSelectAllState();
 
         $(".js-example-basic-single").select2("open");
-
-
       }
-    } else{
+    } else {
       var text='Please Select Valid Item!';
       showToast('error',text,'Notification');
     }
-
   });
 
 
