@@ -236,13 +236,13 @@ require '../config/auth.php';
   <tr>
     <td style="text-align:right;" colspan="4"><b>Flat Discount:</b></td>
     <td class="text-right" colspan="2">
-      <input id="flat_discount" autocomplete="off" onkeyup="calculations();" class="form-control form-control-sm" name="flat_discount" tabindex="-1" value="0" type="number" >
+      <input id="flat_discount" autocomplete="off" onkeyup="calculations();" class="form-control form-control-sm" name="flat_discount" tabindex="-1" value="0" type="number" step="any" min="0" >
   </td>
 </tr>
 <tr>
     <td style="text-align:right;" colspan="4"><b>% Discount:</b></td>
     <td class="text-right" colspan="2">
-      <input id="perc_discount" autocomplete="off" onkeyup="calculations();" class="form-control form-control-sm" name="perc_discount" tabindex="-1" value="0" type="number" >
+      <input id="perc_discount" autocomplete="off" onkeyup="calculations();" class="form-control form-control-sm" name="perc_discount" tabindex="-1" value="0" type="number" step="any" min="0" max="100" >
   </td>
 </tr>
 

@@ -8,6 +8,9 @@ $invoice_id=$_REQUEST['id'];
 $db->where("id",$invoice_id);
 $invoice=$db->getOne("invoices");
 
+// Debug: Let's see what's in the invoice data
+// echo "<pre>Invoice Data: "; print_r($invoice); echo "</pre>";
+
 $db->where("invoice_id",$invoice_id);
 $transaction=$db->getOne("transactions");
 
@@ -522,13 +525,13 @@ $emptyCylinder=$db->getOne("empty_cylinders");
                       <tr>
                         <td style="text-align:right;" colspan="4"><b>Flat Discount:</b></td>
                         <td class="text-right" colspan="2">
-                          <input id="flat_discount" autocomplete="off" onkeyup="calculations();" class="form-control form-control-sm" name="flat_discount" tabindex="-1" value="<?php echo $invoice['flat_discount']; ?>" type="number" <?php if(empty($invoice['flat_discount']) || $invoice['flat_discount'] == 0)echo 'readonly'; ?>>
+                          <input id="flat_discount" autocomplete="off" onkeyup="calculations();" class="form-control form-control-sm" name="flat_discount" tabindex="-1" value="<?php echo isset($invoice['flat_discount']) ? floatval($invoice['flat_discount']) : 0; ?>" type="number" step="any" min="0">
                         </td>
                       </tr>
                       <tr>
                         <td style="text-align:right;" colspan="4"><b>% Discount:</b></td>
                         <td class="text-right" colspan="2">
-                          <input id="perc_discount" autocomplete="off" onkeyup="calculations();" class="form-control form-control-sm" name="perc_discount" tabindex="-1" value="<?php echo $invoice['percentage_discount']; ?>" type="number" <?php if(empty($invoice['percentage_discount']) || $invoice['percentage_discount'] == 0)echo 'readonly'; ?>>
+                          <input id="perc_discount" autocomplete="off" onkeyup="calculations();" class="form-control form-control-sm" name="perc_discount" tabindex="-1" value="<?php echo isset($invoice['percentage_discount']) ? floatval($invoice['percentage_discount']) : 0; ?>" type="number" step="any" min="0" max="100">
                         </td>
                       </tr>
 
@@ -606,14 +609,25 @@ $emptyCylinder=$db->getOne("empty_cylinders");
       $(".js-example-basic-single,.customer_name").select2();
       $('.js-example-basic-single').select2('open');
 
-      // Auto-apply customer discount when customer is selected
+      // Auto-apply customer discount when customer is selected (but preserve existing discounts)
       $('.customer_name').on('change', function() {
           var customer_id = $(this).val();
           if (customer_id) {
-              fetchCustomerDiscount(customer_id);
+              // Check if this is a new customer selection or just page load
+              var currentFlatDiscount = parseFloat($('#flat_discount').val()) || 0;
+              var currentPercDiscount = parseFloat($('#perc_discount').val()) || 0;
+
+              // Only apply customer defaults if no existing discounts
+              if (currentFlatDiscount === 0 && currentPercDiscount === 0) {
+                  fetchCustomerDiscount(customer_id);
+              } else {
+                  // Just load the customer data without overriding discounts
+                  fetchCustomerDiscountForEdit(customer_id);
+              }
           } else {
               // Reset discount if no customer selected
               $('#perc_discount').val(0);
+              $('#flat_discount').val(0);
               calculations();
           }
       });
@@ -621,15 +635,58 @@ $emptyCylinder=$db->getOne("empty_cylinders");
       // Update select all checkbox state on page load for existing items
       updateSelectAllState();
 
-      // Load customer percentage increase on page load
+      // Load customer percentage increase on page load (but don't override existing discounts)
       var initialCustomerId = $('.customer_name').val();
       if (initialCustomerId) {
-          fetchCustomerDiscount(initialCustomerId);
+          fetchCustomerDiscountForEdit(initialCustomerId);
       }
+
+      // Initialize discount field states on page load
+      initializeDiscountFields();
+
+      // Add event handlers for discount fields
+      $('#flat_discount').on('input', function() {
+          var value = parseFloat($(this).val()) || 0;
+          if (value > 0) {
+              $('#perc_discount').val(0).attr('readonly', true);
+          } else {
+              $('#perc_discount').removeAttr('readonly');
+          }
+          calculations();
+      });
+
+      $('#perc_discount').on('input', function() {
+          var value = parseFloat($(this).val()) || 0;
+          if (value > 0) {
+              $('#flat_discount').val(0).attr('readonly', true);
+          } else {
+              $('#flat_discount').removeAttr('readonly');
+          }
+          calculations();
+      });
   });
 
   // Global variable to store customer percentage increase
   var customerPercentageIncrease = 0;
+
+  // Function to initialize discount fields on page load
+  function initializeDiscountFields() {
+      var flatDiscount = parseFloat($('#flat_discount').val()) || 0;
+      var percDiscount = parseFloat($('#perc_discount').val()) || 0;
+
+      // Set initial readonly states based on existing values
+      if (flatDiscount > 0) {
+          $('#perc_discount').attr('readonly', true);
+          $('#flat_discount').removeAttr('readonly');
+      } else if (percDiscount > 0) {
+          $('#flat_discount').attr('readonly', true);
+          $('#perc_discount').removeAttr('readonly');
+      } else {
+          // Both are zero, allow editing both
+          $('#flat_discount').removeAttr('readonly');
+          $('#perc_discount').removeAttr('readonly');
+      }
+  }
 
   // Function to ensure customer percentage increase is loaded
   function ensureCustomerPercentageIncrease() {
@@ -642,7 +699,33 @@ $emptyCylinder=$db->getOne("empty_cylinders");
       }
   }
 
-  // Function to fetch customer discount via AJAX
+  // Function to fetch customer discount for edit page (preserves existing discounts)
+  function fetchCustomerDiscountForEdit(customer_id) {
+      $.ajax({
+          url: 'get-customer-discount.php',
+          type: 'GET',
+          data: { customer_id: customer_id },
+          dataType: 'json',
+          success: function(response) {
+              if (response.success) {
+                  // Store customer percentage increase globally (needed for calculations)
+                  customerPercentageIncrease = response.data.percentage_increase || 0;
+                  console.log('Customer percentage increase loaded for edit:', customerPercentageIncrease + '%');
+
+                  // DON'T override existing discount values on edit page
+                  // Just ensure the fields are properly initialized
+                  initializeDiscountFields();
+              }
+          },
+          error: function() {
+              console.log('Error fetching customer discount data');
+              // Initialize fields anyway
+              initializeDiscountFields();
+          }
+      });
+  }
+
+  // Function to fetch customer discount via AJAX (for new invoices)
   function fetchCustomerDiscount(customer_id) {
       $.ajax({
           url: 'get-customer-discount.php',
