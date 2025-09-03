@@ -43,6 +43,27 @@ foreach($purchaseInvoices as $invoice) {
 
 $totalBalance = $totalPayable - $totalPaid;
 
+// Calculate pending cylinders (purchased - empty returned)
+$pendingCylinders = [];
+$totalPending = 0;
+
+// Get all unique product names from both purchased and empty return cylinders
+$allProducts = array_unique(array_merge(array_keys($purchasedCylinders), array_keys($emptyReturnCylinders)));
+
+foreach($allProducts as $productName) {
+    $purchasedQty = isset($purchasedCylinders[$productName]) ? $purchasedCylinders[$productName] : 0;
+    $emptyQty = isset($emptyReturnCylinders[$productName]) ? $emptyReturnCylinders[$productName] : 0;
+    $pendingQty = $purchasedQty - $emptyQty;
+
+    // Add to total pending (can be negative, but we'll show individual products only if positive)
+    $totalPending += $pendingQty;
+
+    // Only show individual products with positive pending quantities
+    // if ($pendingQty > 0) {
+        $pendingCylinders[$productName] = $pendingQty;
+    // }
+}
+
 // Fetch transactions
 $db->where("vendor_id", $vendor_id);
 $db->where("deleted_at", NULL, 'IS');
@@ -111,7 +132,7 @@ $totalTransactions = array_sum(array_map('floatval', array_column($transactions,
                                 <h5 class="card-title">
                                     <a href="<?php echo baseurl('views/purchase-invoices.php'); ?>"><?php echo number_format(array_sum(array_map('intval', $purchasedCylinders))); ?></a>
                                 </h5>
-                                <?php foreach ($purchasedCylinders as $productName => $qty): ?>
+                                <?php ksort($purchasedCylinders); foreach ($purchasedCylinders as $productName => $qty): ?>
                                     <span class="badge badge-secondary"><?php echo "$productName ($qty)"; ?></span>
                                 <?php endforeach; ?>
                             </div>
@@ -127,8 +148,26 @@ $totalTransactions = array_sum(array_map('floatval', array_column($transactions,
                                 <h5 class="card-title">
                                     <a href="<?php echo baseurl('views/purchase-invoices.php'); ?>"><?php echo number_format(array_sum(array_map('intval', $emptyReturnCylinders))); ?></a>
                                 </h5>
-                                <?php foreach ($emptyReturnCylinders as $productName => $qty): ?>
+                                <?php ksort($emptyReturnCylinders); foreach ($emptyReturnCylinders as $productName => $qty): ?>
                                     <span class="badge badge-secondary"><?php echo "$productName ($qty)"; ?></span>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3 mb-4">
+                        <div class="card total-customers">
+                            <div class="card-header">
+                                <i class="fas fa-users icon"></i>Pending Cylinders
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <a href="" <?php if($totalPending > 0){echo 'class="text-danger"';}else{echo 'class="text-success"';} ?>>
+                                        <?php echo $totalPending; ?>
+                                    </a>
+                                </h5>
+                                <?php ksort($pendingCylinders); foreach($pendingCylinders as $productName => $pendingQty): ?>
+                                    <span class="badge badge-secondary"><?php echo "$productName ($pendingQty)"; ?></span>
                                 <?php endforeach; ?>
                             </div>
                         </div>

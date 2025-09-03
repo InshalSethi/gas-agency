@@ -253,11 +253,11 @@ if (isset($_GET['id'])) {
                 <label for="cnic">CNIC:</label>
                 <input type="text" id="cnic" name="cnic" class="form-control" value="<?php echo htmlspecialchars($customer['cnic']); ?>" required>
             </div>
-            <div class="form-group">
+            <div class="form-group" style="display: none;">
                 <label for="percentage_discount">Percentage Discount (%):</label>
                 <input type="number" id="percentage_discount" name="percentage_discount" class="form-control" value="<?php echo isset($customer['percentage_discount']) ? htmlspecialchars($customer['percentage_discount']) : '0'; ?>" min="0" max="100" step="0.01">
             </div>
-            <div class="form-group">
+            <div class="form-group" style="display: none;">
                 <label for="percentage_increase">Percentage Increase (%):</label>
                 <input type="number" id="percentage_increase" name="percentage_increase" class="form-control" value="<?php echo isset($customer['percentage_increase']) ? htmlspecialchars($customer['percentage_increase']) : '0'; ?>" min="0" max="100" step="0.01">
             </div>

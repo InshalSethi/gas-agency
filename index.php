@@ -215,17 +215,18 @@ foreach ($todayInvoices as $todayInvoice) {
 $todayEmptyCylinders = [];
 $totalTodayEmpty = 0;
 
-// Get today's empty cylinders from empty_cylinders table
-$db->where("ecy.deleted_at", NULL, 'IS');
-$db->where("DATE(ecy.created_at)", $today);
-$db->join("invoice_items ii", "ecy.invoice_item_id=ii.id", "LEFT");
-$db->join("cylinders cy", "ii.product_id=cy.id", "LEFT");
-$todayEmptyRecords = $db->get("empty_cylinders ecy", null, "ecy.cylinders as qty, cy.name as cylinder_name, cy.id as cylinder_id");
+// Get today's empty cylinders directly from today's invoices
+foreach ($todayInvoices as $todayInvoice) {
+    // Get invoice items for today's invoices
+    $db->where("invoice_id", $todayInvoice['id']);
+    $todayInvoiceItems = $db->get("invoice_items");
 
-foreach ($todayEmptyRecords as $emptyRecord) {
-    if (!empty($emptyRecord['cylinder_name'])) {
-        $todayEmptyCylinders[$emptyRecord['cylinder_name']] = ($todayEmptyCylinders[$emptyRecord['cylinder_name']] ?? 0) + $emptyRecord['qty'];
-        $totalTodayEmpty += $emptyRecord['qty'];
+    foreach ($todayInvoiceItems as $item) {
+        if ($item['empty_qty'] > 0) {
+            $product = $cylinderLookup[$item['product_id']];
+            $todayEmptyCylinders[$product['name']] = ($todayEmptyCylinders[$product['name']] ?? 0) + $item['empty_qty'];
+            $totalTodayEmpty += $item['empty_qty'];
+        }
     }
 }
 
@@ -607,6 +608,9 @@ if (isset($_REQUEST['reset'])) {
                       <div class="col-md-3">
                         <button class="btn btn-info" id="resetFilterBtn" title="Reset Filter"><i class="fa fa-refresh"></i></button>
                         <button class="btn btn-primary ml-1" id="downloadExcelBtn" title="Download Excel"><i class="fa fa-download"></i></button>
+                        <a class="btn btn-success text-white" href="views/add-sale-invoice.php" title="Add Invoice">
+                          <i class="fa fa-plus"></i> Add Invoice
+                        </a>
                       </div>
                     </div>
                   </div>
