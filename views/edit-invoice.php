@@ -632,7 +632,7 @@ $emptyCylinder=$db->getOne("empty_cylinders");
   });
   $(document).ready(function() {
       $(".js-example-basic-single,.customer_name").select2();
-      $('.js-example-basic-single').select2('open');
+      $('.customer_name').select2('open');
 
       // Auto-apply customer discount when customer is selected (but preserve existing discounts)
       $('.customer_name').on('change', function() {

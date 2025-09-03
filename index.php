@@ -331,8 +331,17 @@ if (isset($_REQUEST['reset'])) {
     <div class="container-fluid mt-4">
       <div class="row">
         <div class="col-md-12">
-          <h2 class="text-left">Dashboard</h2>
-          <p>Welcome aboard! Your dashboard awaits your next move. </p>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h2 class="text-left mb-1">Dashboard</h2>
+              <p class="mb-0">Welcome aboard! Your dashboard awaits your next move. </p>
+            </div>
+            <div>
+              <a class="btn btn-success text-white" href="views/add-sale-invoice.php" title="Add Invoice">
+                <i class="fa fa-plus"></i> Add Invoice
+              </a>
+            </div>
+          </div>
           <div class="row">
             <div class="col-md-3 mb-4">
             <div class="card total-cylinders">
@@ -598,7 +607,6 @@ if (isset($_REQUEST['reset'])) {
                       <div class="col-md-3">
                         <button class="btn btn-info" id="resetFilterBtn" title="Reset Filter"><i class="fa fa-refresh"></i></button>
                         <button class="btn btn-primary ml-1" id="downloadExcelBtn" title="Download Excel"><i class="fa fa-download"></i></button>
-                        <a class="btn btn-success ml-1 text-white" href="views/add-sale-invoice.php" title="Add Invoice"><i class="fa fa-plus"></i> Add Invoice</a>
                       </div>
                     </div>
                   </div>
