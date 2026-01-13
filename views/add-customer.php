@@ -31,7 +31,7 @@ require '../config/auth.php';
             "cnic"=>$cnic,
             "percentage_discount"=>$percentage_discount,
             "percentage_increase"=>$percentage_increase,
-            "security_deposit"=>$cash_amount,
+            "security_deposit"=>!empty($cash_amount) ? $cash_amount : 0,
             "gas_types"=>$gasTypes,
             "active"=>1,
             "created_at"=>$date
