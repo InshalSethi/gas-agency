@@ -77,8 +77,8 @@ foreach( $invoices as $invoice ){
     $db->where("invoice_id", $invoice['id']);
     $invoiceItems = $db->get("invoice_items");
     foreach ($invoiceItems as $invoiceItem) {
-        $totalInvCylinders += $invoiceItem['qty'];
-        $totalEmptyCylinders += $invoiceItem['empty_qty'];
+        $totalInvCylinders += (int)$invoiceItem['qty'];
+        $totalEmptyCylinders += (int)$invoiceItem['empty_qty'];
     }
 
     $data[] = [

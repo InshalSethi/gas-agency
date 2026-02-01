@@ -13,45 +13,20 @@ $balance_filter = $_REQUEST['balance_filter'];
 $empty_filter = $_REQUEST['empty_filter'];
 $bonus_filter = $_REQUEST['bonus_filter'];
 
-// Step 1: Get filtered customer IDs first
+// Step 1: Get ALL customers matching search query (before filters)
 $db->where("deleted_at", NULL, 'IS');
 
 if (!empty($searchQuery)) {
     $db->where("(name LIKE '%" . $searchQuery . "%' OR phone LIKE '%" . $searchQuery . "%' OR cnic LIKE '%" . $searchQuery . "%' OR created_at LIKE '%" . $searchQuery . "%')");
 }
 
-// Get total count
-$totalCustomers = $db->get('customers', null, 'id');
-$totalRecords = count($totalCustomers);
+// Get all customers with search filter
+$allCustomers = $db->get('customers', null, ['id', 'customer_id', 'name', 'phone', 'cnic', 'created_at']);
 
-// Step 2: Get customer IDs for current page
-$db->where("deleted_at", NULL, 'IS');
-
-if (!empty($searchQuery)) {
-    $db->where("(name LIKE '%" . $searchQuery . "%' OR phone LIKE '%" . $searchQuery . "%' OR cnic LIKE '%" . $searchQuery . "%' OR created_at LIKE '%" . $searchQuery . "%')");
-}
-
-// Apply ordering
-$orderColumn = 'name';
-switch($columnName) {
-    case 'name':
-        $orderColumn = 'name';
-        break;
-    case 'phone':
-        $orderColumn = 'phone';
-        break;
-    case 'created_at':
-        $orderColumn = 'created_at';
-        break;
-}
-
-$db->orderBy($orderColumn, $columnSortOrder);
-$pageCustomers = $db->get('customers', [$row, $rowperpage], ['id', 'customer_id', 'name', 'phone', 'cnic', 'created_at']);
-
-if (empty($pageCustomers)) {
+if (empty($allCustomers)) {
     $response = [
         "draw" => intval($draw),
-        "iTotalRecords" => $totalRecords,
+        "iTotalRecords" => 0,
         "iTotalDisplayRecords" => 0,
         "data" => []
     ];
@@ -59,24 +34,13 @@ if (empty($pageCustomers)) {
     exit;
 }
 
-// Get customer IDs array
-$customerIds = array_column($pageCustomers, 'id');
-$customerIdsList = implode(',', $customerIds);
+// Get all customer IDs
+$allCustomerIds = array_column($allCustomers, 'id');
 
-// Step 3: Get all related data in batch queries
-// Get security options
-$securityOptions = [];
-if (!empty($customerIds)) {
-    $db->where('customer_id', $customerIds, 'IN');
-    $securityData = $db->get('security_options');
-    foreach ($securityData as $security) {
-        $securityOptions[$security['customer_id']] = $security;
-    }
-}
-
+// Step 2: Calculate balance, stock, and bonus for ALL customers to apply filters
 // Get balance calculations using the same logic as original code
 $balanceData = [];
-foreach ($customerIds as $customerId) {
+foreach ($allCustomerIds as $customerId) {
     $receivedCustomersArray = [];
     $totalReceivable = 0;
     $totalReceived = 0;
@@ -114,7 +78,7 @@ foreach ($customerIds as $customerId) {
 
 // Get stock summaries using the same query structure as original code
 $stockSummaries = [];
-foreach ($customerIds as $customerId) {
+foreach ($allCustomerIds as $customerId) {
     $query = "SELECT 
                 customer_id, 
                 customer_name,
@@ -180,7 +144,7 @@ foreach ($customerIds as $customerId) {
 
 // Get bonus summaries using the same logic as original code
 $bonusSummaries = [];
-foreach ($customerIds as $customerId) {
+foreach ($allCustomerIds as $customerId) {
     $getBonusStockDetails = getCustomerBonus($db, $customerId);
     
     if (!empty($getBonusStockDetails['bonus_stock'])) {
@@ -207,26 +171,24 @@ foreach ($customerIds as $customerId) {
     }
 }
 
-// Step 4: Process and filter data
-$data = [];
-foreach ($pageCustomers as $customer) {
+// Step 3: Apply filters to get filtered customer IDs
+$filteredCustomerIds = [];
+$customerDataMap = [];
+foreach ($allCustomers as $customer) {
     $customerId = $customer['id'];
     
-    // Calculate balance - exactly like original code
+    // Calculate balance
     $balance = isset($balanceData[$customerId]) ? $balanceData[$customerId]['balance'] : 0;
     
     // Get stock data
     $purchasedStock = isset($stockSummaries[$customerId]) ? $stockSummaries[$customerId]['purchased'] : [];
     $emptyStock = isset($stockSummaries[$customerId]) ? $stockSummaries[$customerId]['empty'] : [];
-    $purchasedStr = isset($stockSummaries[$customerId]) ? $stockSummaries[$customerId]['purchased_str'] : '';
-    $emptyStr = isset($stockSummaries[$customerId]) ? $stockSummaries[$customerId]['empty_str'] : '';
     
     // Get bonus data
     $bonusStock = isset($bonusSummaries[$customerId]) ? $bonusSummaries[$customerId]['bonus'] : [];
-    $bonusStr = isset($bonusSummaries[$customerId]) ? $bonusSummaries[$customerId]['bonus_str'] : '';
     $totalBonus = isset($bonusSummaries[$customerId]) ? $bonusSummaries[$customerId]['total_bonus'] : 0;
     
-    // Calculate pending cylinders - exactly like original code
+    // Calculate pending cylinders
     $pendingCylinders = [];
     foreach ($purchasedStock as $product => $qty) {
         $empQty = isset($emptyStock[$product]) ? $emptyStock[$product] : 0;
@@ -239,14 +201,11 @@ foreach ($pageCustomers as $customer) {
         return "$product($qty)";
     }, array_keys($pendingCylinders), $pendingCylinders));
 
-    // Calculate total pending using sumBracketNumbers function like original
+    // Calculate total pending
     $pendingTotal = 0;
     if (!empty($pendingStr)) {
         $pendingTotal = sumBracketNumbers($pendingStr);
     }
-    
-    // Apply hasPositiveValue function like original for row class
-    $hasPositivePending = hasPositiveValue($pendingCylinders);
     
     // Apply filters
     $includeRecord = true;
@@ -261,9 +220,103 @@ foreach ($pageCustomers as $customer) {
         $includeRecord = false;
     }
     
-    if (!$includeRecord) {
-        continue;
+    if ($includeRecord) {
+        $filteredCustomerIds[] = $customerId;
+        // Store customer data with calculated values for later use
+        $customerDataMap[$customerId] = [
+            'customer' => $customer,
+            'balance' => $balance,
+            'purchasedStock' => $purchasedStock,
+            'emptyStock' => $emptyStock,
+            'bonusStock' => $bonusStock,
+            'pendingCylinders' => $pendingCylinders,
+            'pendingTotal' => $pendingTotal,
+            'totalBonus' => $totalBonus
+        ];
     }
+}
+
+// Step 4: Get filtered customers and sort them
+$filteredCustomers = [];
+foreach ($filteredCustomerIds as $customerId) {
+    $filteredCustomers[] = $customerDataMap[$customerId]['customer'];
+}
+
+// Apply ordering to filtered customers
+$orderColumn = 'name';
+switch($columnName) {
+    case 'name':
+        $orderColumn = 'name';
+        break;
+    case 'phone':
+        $orderColumn = 'phone';
+        break;
+    case 'created_at':
+        $orderColumn = 'created_at';
+        break;
+}
+
+usort($filteredCustomers, function($a, $b) use ($orderColumn, $columnSortOrder) {
+    $valA = $a[$orderColumn];
+    $valB = $b[$orderColumn];
+    
+    if ($columnSortOrder === 'asc') {
+        return strcmp($valA, $valB);
+    } else {
+        return strcmp($valB, $valA);
+    }
+});
+
+// Step 5: Paginate filtered customers
+$totalFilteredRecords = count($filteredCustomers);
+$pageCustomers = array_slice($filteredCustomers, $row, $rowperpage);
+
+if (empty($pageCustomers)) {
+    $response = [
+        "draw" => intval($draw),
+        "iTotalRecords" => count($allCustomers),
+        "iTotalDisplayRecords" => $totalFilteredRecords,
+        "data" => []
+    ];
+    echo json_encode($response);
+    exit;
+}
+
+// Get customer IDs for current page
+$customerIds = array_column($pageCustomers, 'id');
+
+// Step 6: Get security options for paginated customers
+$securityOptions = [];
+if (!empty($customerIds)) {
+    $db->where('customer_id', array_column($pageCustomers, 'customer_id'), 'IN');
+    $securityData = $db->get('security_options');
+    foreach ($securityData as $security) {
+        $securityOptions[$security['customer_id']] = $security;
+    }
+}
+
+// Step 7: Process paginated data
+$data = [];
+foreach ($pageCustomers as $customer) {
+    $customerId = $customer['id'];
+    $customerData = $customerDataMap[$customerId];
+    
+    $balance = $customerData['balance'];
+    $purchasedStock = $customerData['purchasedStock'];
+    $emptyStock = $customerData['emptyStock'];
+    $bonusStock = $customerData['bonusStock'];
+    $pendingCylinders = $customerData['pendingCylinders'];
+    
+    $purchasedStr = isset($stockSummaries[$customerId]) ? $stockSummaries[$customerId]['purchased_str'] : '';
+    $emptyStr = isset($stockSummaries[$customerId]) ? $stockSummaries[$customerId]['empty_str'] : '';
+    $bonusStr = isset($bonusSummaries[$customerId]) ? $bonusSummaries[$customerId]['bonus_str'] : '';
+    
+    $pendingStr = implode(', ', array_map(function ($product, $qty) {
+        return "$product($qty)";
+    }, array_keys($pendingCylinders), $pendingCylinders));
+    
+    // Apply hasPositiveValue function like original for row class
+    $hasPositivePending = hasPositiveValue($pendingCylinders);
     
     // Determine row class - exactly like original code
     $row_class = '';
@@ -279,8 +332,8 @@ foreach ($pageCustomers as $customer) {
     
     // Security details
     $securityDetail = '';
-    if (isset($securityOptions[$customerId])) {
-        $security = $securityOptions[$customerId];
+    if (isset($securityOptions[$customer['customer_id']])) {
+        $security = $securityOptions[$customer['customer_id']];
         if (!empty($security['security_type'])) {
             $securityDetail = '<span class="badge badge-info">' . $security['security_type'] . '</span> ';
         }
@@ -304,11 +357,11 @@ foreach ($pageCustomers as $customer) {
     ];
 }
 
-// Prepare response
+// Prepare response with correct counts
 $response = [
     "draw" => intval($draw),
-    "iTotalRecords" => $totalRecords,
-    "iTotalDisplayRecords" => $totalRecords,
+    "iTotalRecords" => count($allCustomers),
+    "iTotalDisplayRecords" => $totalFilteredRecords,
     "data" => $data
 ];
 

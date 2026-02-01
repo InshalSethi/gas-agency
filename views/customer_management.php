@@ -52,9 +52,11 @@ if (isset($_REQUEST['id'])) {
                           <option value="given">Given</option>
                         </select>
                       </div>
-                      <div class="col-md-2"></div>
                       <div class="col-md-2">
                         <button class="btn btn-primary mt-2 w-100" id="resetFilterBtn"><i class="fa fa-refresh"></i> Reset Filter</button>
+                      </div>
+                      <div class="col-md-2">
+                        <button class="btn btn-info mt-2 w-100" id="exportCsvBtn"><i class="fa fa-download"></i> Export CSV</button>
                       </div>
                       <div class="col-md-2">
                         <a class="btn btn-success mt-2 w-100"  href="add-customer.php"><i class="fa fa-plus"></i> Add Customer</a>
@@ -438,6 +440,35 @@ if (isset($_REQUEST['id'])) {
             }
             return true;
         }
+
+        // Export CSV button click handler
+        $('#exportCsvBtn').click(function() {
+            // Get current filter values
+            var balanceFilter = $('#balanceFilter').val() || '';
+            var emptyFilter = $('#emptyFilter').val() || '';
+            var bonusFilter = $('#bonusFilter').val() || '';
+            
+            // Get DataTables search value (built-in search box)
+            var searchQuery = customerTable.search() || '';
+            
+            // Also check for custom search_query input if it exists
+            if ($('#search_query').length && $('#search_query').val()) {
+                searchQuery = $('#search_query').val();
+            }
+            
+            // Build export URL with filter parameters
+            var exportUrl = 'export_customers_csv.php?';
+            var params = [];
+            if (balanceFilter) params.push('balance_filter=' + encodeURIComponent(balanceFilter));
+            if (emptyFilter) params.push('empty_filter=' + encodeURIComponent(emptyFilter));
+            if (bonusFilter) params.push('bonus_filter=' + encodeURIComponent(bonusFilter));
+            if (searchQuery) params.push('search_query=' + encodeURIComponent(searchQuery));
+            
+            exportUrl += params.join('&');
+            
+            // Open export URL in new window to trigger download
+            window.location.href = exportUrl;
+        });
     });
 </script>
 </body>

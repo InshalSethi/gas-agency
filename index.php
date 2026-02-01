@@ -109,22 +109,22 @@ foreach ($allCustomers as $allCustomer) {
     if (isset($bonusItemsAll[$customerId])) {
         foreach ($bonusItemsAll[$customerId] as $bonusItem) {
             $pro = $cylinderLookup[$bonusItem['product_id']];
-            $bonusCylinders[$pro['name']] = ($bonusCylinders[$pro['name']] ?? 0) + $bonusItem['qty'];
-            $bonus += $bonusItem['qty'];
+            $bonusCylinders[$pro['name']] = ($bonusCylinders[$pro['name']] ?? 0) + (int)$bonusItem['qty'];
+            $bonus += (int)$bonusItem['qty'];
         }
     }
 
     // Process invoices using prefetched data
     if (isset($invoicesAll[$customerId])) {
         foreach ($invoicesAll[$customerId] as $invoice) {
-            $receivable += $invoice['grand_total'];
+            $receivable += (float)$invoice['grand_total'];
             
             // Process invoice items using prefetched data
             if (isset($invoiceItemsAll[$invoice['id']])) {
                 foreach ($invoiceItemsAll[$invoice['id']] as $invoiceItem) {
                     $product = $cylinderLookup[$invoiceItem['product_id']];
-                    $purchasedCylinders[$product['name']] = ($purchasedCylinders[$product['name']] ?? 0) + $invoiceItem['qty'];
-                    $emptyReturnCylinders[$product['name']] = ($emptyReturnCylinders[$product['name']] ?? 0) + $invoiceItem['empty_qty'];
+                    $purchasedCylinders[$product['name']] = ($purchasedCylinders[$product['name']] ?? 0) + (int)$invoiceItem['qty'];
+                    $emptyReturnCylinders[$product['name']] = ($emptyReturnCylinders[$product['name']] ?? 0) + (int)$invoiceItem['empty_qty'];
                 }
             }
         }
@@ -206,8 +206,8 @@ foreach ($todayInvoices as $todayInvoice) {
 
     foreach ($todayInvoiceItems as $item) {
         $product = $cylinderLookup[$item['product_id']];
-        $todaySoldCylinders[$product['name']] = ($todaySoldCylinders[$product['name']] ?? 0) + $item['qty'];
-        $totalTodaySold += $item['qty'];
+        $todaySoldCylinders[$product['name']] = ($todaySoldCylinders[$product['name']] ?? 0) + (int)$item['qty'];
+        $totalTodaySold += (int)$item['qty'];
     }
 }
 
@@ -222,10 +222,10 @@ foreach ($todayInvoices as $todayInvoice) {
     $todayInvoiceItems = $db->get("invoice_items");
 
     foreach ($todayInvoiceItems as $item) {
-        if ($item['empty_qty'] > 0) {
+        if ((int)$item['empty_qty'] > 0) {
             $product = $cylinderLookup[$item['product_id']];
-            $todayEmptyCylinders[$product['name']] = ($todayEmptyCylinders[$product['name']] ?? 0) + $item['empty_qty'];
-            $totalTodayEmpty += $item['empty_qty'];
+            $todayEmptyCylinders[$product['name']] = ($todayEmptyCylinders[$product['name']] ?? 0) + (int)$item['empty_qty'];
+            $totalTodayEmpty += (int)$item['empty_qty'];
         }
     }
 }
@@ -237,8 +237,8 @@ $cylinders = $db->get("cylinders");
 $totalCylinders = 0;
 $totalEmptyProductsCylinders = 0;
 foreach($cylinders as $cylinder){
-  $totalEmptyProductsCylinders += $cylinder['empty_qty'];
-  $totalCylinders += $cylinder['qty'];
+  $totalEmptyProductsCylinders += (int)$cylinder['empty_qty'];
+  $totalCylinders += (int)$cylinder['qty'];
 }
 
 // Aggregate totals for InStock Cylinders
@@ -249,12 +249,12 @@ foreach ($cylinders as $cylinder) {
     if (!isset($totalInStockCylinders[$cylinder['name']])) {
         $totalInStockCylinders[$cylinder['name']] = 0;
     }
-    $totalInStockCylinders[$cylinder['name']] += $cylinder['qty'];
+    $totalInStockCylinders[$cylinder['name']] += (int)$cylinder['qty'];
 
     if (!isset($totalEmptyStockCylinders[$cylinder['name']])) {
         $totalEmptyStockCylinders[$cylinder['name']] = 0;
     }
-    $totalEmptyStockCylinders[$cylinder['name']] += $cylinder['empty_qty'];
+    $totalEmptyStockCylinders[$cylinder['name']] += (int)$cylinder['empty_qty'];
 }
 
 // Calculate execution time
@@ -376,28 +376,6 @@ if (isset($_REQUEST['reset'])) {
               </div>
             </div>
           </div>
-
-          <!-- <div class="col-md-3 mb-4">
-            <div class="card total-customers">
-              <div class="card-header">
-                <i class="fas fa-users icon"></i>Total Customers
-              </div>
-              <div class="card-body">
-                <h5 class="card-title"><a href="customer_management.php"><?php echo $allCustomersCount; ?></a></h5>
-              </div>
-            </div>
-          </div> -->
-
-          <!-- <div class="col-md-3 mb-4">
-            <div class="card pending-refills">
-              <div class="card-header">
-                <i class="fas fa-sync icon"></i>Pending Refills
-              </div>
-              <div class="card-body">
-                <h5 class="card-title"><a href="pending_refills.php"><?php echo $pendingRefillsCount; ?></a></h5>
-              </div>
-            </div>
-          </div> -->
 
           <div class="col-md-3 mb-4">
             <div class="card inactive-customers">

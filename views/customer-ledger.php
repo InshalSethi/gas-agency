@@ -20,8 +20,8 @@ $bonusItems = $db->get("bonus_cylinders");
 foreach($bonusItems as $bonusItem) {
     $db->where("id", $bonusItem['product_id']);
     $pro = $db->getOne("cylinders");
-    $bonusCylinders[$pro['name']] = $bonusItem['qty'];
-    $totalBonus+=$bonusItem['qty'];
+    $bonusCylinders[$pro['name']] = (int)$bonusItem['qty'];
+    $totalBonus += (int)$bonusItem['qty'];
 }
 
 // Fetch invoices and their items
@@ -44,8 +44,8 @@ foreach($invoices as $invoice) {
         if (!isset($emptyReturnCylinders[$product['name']])) {
             $emptyReturnCylinders[$product['name']] = 0;
         }
-        $purchasedCylinders[$product['name']] += $invoiceItem['qty'];
-        $emptyReturnCylinders[$product['name']] += $invoiceItem['empty_qty'];
+        $purchasedCylinders[$product['name']] += (int)$invoiceItem['qty'];
+        $emptyReturnCylinders[$product['name']] += (int)$invoiceItem['empty_qty'];
     }
 }
 
