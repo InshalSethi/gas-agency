@@ -339,6 +339,14 @@ foreach ($pageCustomers as $customer) {
         }
     }
     
+    $actions = '';
+    if (checkPermission('customers_edit')) {
+        $actions .= '<a href="edit_customer.php?id=' . $customer['customer_id'] . '" class="btn btn-warning btn-sm">Edit</a> ';
+    }
+    if (checkPermission('customers_delete')) {
+        $actions .= '<a class="btn btn-danger btn-sm" onclick="deleteRow(' . $customer['id'] . ')">Delete</a>';
+    }
+
     $data[] = [
         'name' => '<a href="customer-ledger.php?id=' . $customer['id'] . '" class="text-primary"><b>' . $customer['name'] . '</b></a>',
         'customer_id' => $customer['customer_id'],
@@ -351,9 +359,7 @@ foreach ($pageCustomers as $customer) {
         'bonus_cylinders' => $bonusStr,
         'pending_cylinders' => $pendingStr,
         'row_class' => $row_class,
-        'actions' => '
-            <a href="edit_customer.php?id=' . $customer['customer_id'] . '" class="btn btn-warning btn-sm">Edit</a>
-            <a class="btn btn-danger btn-sm" onclick="deleteRow(' . $customer['id'] . ')">Delete</a>'
+        'actions' => $actions
     ];
 }
 

@@ -53,7 +53,7 @@ function RemoveStockQty($pro_id,$pro_qty,$db){
   $db->where('id',$pro_id);
   $old_qty=$db->getValue('cylinders','qty');
 
-  $new_qty= $old_qty -$pro_qty;
+  $new_qty= (int)$old_qty - (int)$pro_qty;
 
   if ($new_qty > 0) {
     $update=array("qty"=>$new_qty);
@@ -70,7 +70,7 @@ function addEmptyStockQty($pro_id,$pro_qty,$db){
   $db->where('id',$pro_id);
   $old_qty=$db->getValue('cylinders','empty_qty');
 
-  $new_qty= $old_qty + $pro_qty;
+  $new_qty= (int)$old_qty + (int)$pro_qty;
 
   if ($new_qty > 0) {
     $update=array("empty_qty"=>$new_qty);
@@ -87,7 +87,7 @@ function removeEmptyStockQty($pro_id,$pro_qty,$db){
   $db->where('id',$pro_id);
   $old_qty=$db->getValue('cylinders','empty_qty');
 
-  $new_qty= $old_qty - $pro_qty;
+  $new_qty= (int)$old_qty - (int)$pro_qty;
 
   if ($new_qty > 0) {
     $update=array("empty_qty"=>$new_qty);
@@ -105,7 +105,7 @@ function AddStockQty($pro_id,$pro_qty,$rate,$db){
   $db->where('id',$pro_id);
   $old_qty=$db->getValue('cylinders','qty');
 
-  $new_qty= $old_qty +$pro_qty;
+  $new_qty= (int)$old_qty + (int)$pro_qty;
 
   if ($new_qty > 0) {
     $update=array("qty"=>$new_qty,"supplier_rate"=>$rate);
@@ -411,4 +411,30 @@ function deleteVendor($id) {
 }
 
 
+
+function checkPermission($permission_slug) {
+    global $db;
+    if (!isset($_SESSION['user_id'])) return false;
+    
+    $user_id = $_SESSION['user_id'];
+    
+    // Admin has all permissions
+    if (isset($_SESSION['role_name']) && $_SESSION['role_name'] === 'Admin') {
+        return true;
+    }
+
+    $query = "SELECT p.slug 
+              FROM users u 
+              JOIN role_permissions rp ON u.role_id = rp.role_id 
+              JOIN permissions p ON rp.permission_id = p.id 
+              WHERE u.id = ? AND p.slug = ?";
+              
+    $result = $db->rawQuery($query, [$user_id, $permission_slug]);
+    
+    return !empty($result);
+}
+
+function isAdmin() {
+    return isset($_SESSION['role_name']) && $_SESSION['role_name'] === 'Admin';
+}
 ?>

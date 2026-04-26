@@ -1,5 +1,7 @@
 <?php
 require '../config/db.php';
+require_once '../config/db_functions.php';
+require_once '../config/auth.php';
 
 // Get search query if available
 // var_dump($_REQUEST);die();
@@ -81,6 +83,15 @@ foreach( $invoices as $invoice ){
         $totalEmptyCylinders += (int)$invoiceItem['empty_qty'];
     }
 
+    
+    $actions = '';
+    if (checkPermission('sale_invoices_edit')) {
+        $actions .= '<a href="edit-invoice.php?id=' . $invoice['id'] . '" class="btn btn-warning btn-sm">Edit</a> ';
+    }
+    if (checkPermission('sale_invoices_delete')) {
+        $actions .= '<a class="btn btn-danger btn-sm" onclick="deleteRow(' . $invoice['id'] . ')">Delete</a>';
+    }
+
     $data[] = [
         'id' => $invoice['id'],
         'description' => $invoice['description'],
@@ -92,9 +103,7 @@ foreach( $invoices as $invoice ){
         'received' => $invoice['received'],
         'balance' => $invoice['balance'],
         'created_at' => date("d-m-Y h:i:s", strtotime($invoice['created_at'])),
-        'actions' => '
-            <a href="edit-invoice.php?id=' . $invoice['id'] . '" class="btn btn-warning btn-sm">Edit</a>
-            <a class="btn btn-danger btn-sm"  onclick="deleteRow('.$invoice['id'].')">Delete</a>'
+        'actions' => $actions
     ];
 }
 

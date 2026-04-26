@@ -3,7 +3,17 @@
 require '../config/db.php';
 require_once '../config/db_functions.php';
 require '../config/auth.php';
+
+if (!checkPermission('transactions_view')) {
+    echo "Access Denied. You do not have permission to view transactions.";
+    exit();
+}
+
 if (isset($_REQUEST['id'])) {
+    if (!checkPermission('transactions_delete')) {
+        echo "Access Denied. You do not have permission to delete transactions.";
+        exit();
+    }
     $x=$_REQUEST['id'];
     date_default_timezone_set("Asia/Karachi");
     $delDate =  date("Y-m-d h:i:s");
@@ -70,7 +80,9 @@ if (isset($_REQUEST['id'])) {
                         </button>
                     </div>
                     <div class="col-md-4 d-flex justify-content-end align-items-end">
+                        <?php if (checkPermission('transactions_add')): ?>
                         <a class="btn btn-success" href="create-transaction.php"><i class="fa fa-plus"></i> Create Transaction</a>
+                        <?php endif; ?>
                     </div>
                 </div>
 

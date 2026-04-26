@@ -180,7 +180,7 @@ require '../config/auth.php';
                 <select class="form-control" id="gasType" name="gas_types[]" multiple="multiple" required>
                     <option value="">Select Cylinder Type</option>
                     <?php 
-                    $gasTypeArray = json_decode($customer['gas_types'], true);
+                    $gasTypeArray = json_decode($customer['gas_types'] ?? '[]', true);
                     $cylinder_query = "SELECT id, name FROM cylinders";
                     $cylinder_result = $conn->query($cylinder_query);
                     $gas_types = [];

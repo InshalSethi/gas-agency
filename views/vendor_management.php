@@ -3,8 +3,17 @@ require_once '../config/db.php';
 require_once '../config/db_functions.php';
 require '../config/auth.php';
 
+if (!checkPermission('vendors_view')) {
+    echo "Access Denied. You do not have permission to view vendors.";
+    exit();
+}
+
 if (isset($_REQUEST['id'])) {
-  $x=$_REQUEST['id'];
+    if (!checkPermission('vendors_delete')) {
+        echo "Access Denied. You do not have permission to delete vendors.";
+        exit();
+    }
+    $x=$_REQUEST['id'];
   if ( $x != '')   {
     date_default_timezone_set("Asia/Karachi");
     $delDate =  date("Y-m-d h:i:s");
@@ -31,7 +40,9 @@ if (isset($_REQUEST['id'])) {
     <header><h4 class="text-white">Vendors</h4></header>
     <div class="table-container">
         <div class="d-flex justify-content-start mt-2 mb-2 float-right">
+          <?php if (checkPermission('vendors_add')): ?>
           <a href="add_vendor.php" class="btn btn-success" ><i class="fa fa-plus"></i> Add Vendor</a>
+          <?php endif; ?>
       </div>
       <table id="vendorTable" class="table table-bordered table-striped">
         <thead  class="thead-dark">
@@ -52,11 +63,15 @@ if (isset($_REQUEST['id'])) {
                     <td><?php echo htmlspecialchars($vendor['contact_info']); ?></td>
                     <td><?php echo htmlspecialchars($vendor['address']); ?></td>
                     <td>
+                        <?php if (checkPermission('vendors_edit')): ?>
                         <a href="edit_vendor.php?id=<?php echo $vendor['id']; ?>" class="btn btn-warning btn-sm">Edit</a>
+                        <?php endif; ?>
+                        <?php if (checkPermission('vendors_delete')): ?>
                         <form action="vendor_management.php" method="POST" style="display:inline;">
                             <input type="hidden" name="vendor_id" value="<?php echo $vendor['id']; ?>">
                             <a  class="btn btn-danger btn-sm" onclick="deleteRow(<?php echo $vendor['id']; ?>)">Delete</a>
                         </form>
+                        <?php endif; ?>
                     </td>
                 </tr>
             <?php endforeach; ?>

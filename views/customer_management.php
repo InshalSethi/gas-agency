@@ -3,6 +3,12 @@
 require '../config/db.php';
 require_once '../config/db_functions.php';
 require '../config/auth.php';
+
+if (!checkPermission('customers_view')) {
+    echo "Access Denied. You do not have permission to view customers.";
+    exit();
+}
+
 if (isset($_REQUEST['id'])) {
   $x=$_REQUEST['id'];
   if ( $x != '')   {
@@ -58,9 +64,11 @@ if (isset($_REQUEST['id'])) {
                       <div class="col-md-2">
                         <button class="btn btn-info mt-2 w-100" id="exportCsvBtn"><i class="fa fa-download"></i> Export CSV</button>
                       </div>
+                      <?php if (checkPermission('customers_add')): ?>
                       <div class="col-md-2">
                         <a class="btn btn-success mt-2 w-100"  href="add-customer.php"><i class="fa fa-plus"></i> Add Customer</a>
                       </div>
+                      <?php endif; ?>
                     </div>
                   </div>
       <table id="customerTable" class="table table-striped table-hover">

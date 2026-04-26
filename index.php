@@ -4,6 +4,9 @@ require 'config/db.php';
 require_once 'config/db_functions.php';
 require 'config/auth.php';
 
+// Permissions are now checked inline for stats and tables
+
+
 // Start measuring execution time
 $start_time = microtime(true);
 
@@ -337,12 +340,15 @@ if (isset($_REQUEST['reset'])) {
               <h2 class="text-left mb-1">Dashboard</h2>
               <p class="mb-0">Welcome aboard! Your dashboard awaits your next move. </p>
             </div>
+            <?php if (checkPermission('sale_invoices_add')): ?>
             <div>
               <a class="btn btn-success text-white" href="views/add-sale-invoice.php" title="Add Invoice">
                 <i class="fa fa-plus"></i> Add Invoice
               </a>
             </div>
+            <?php endif; ?>
           </div>
+          <?php if (checkPermission('dashboard_view')): ?>
           <div class="row">
             <div class="col-md-3 mb-4">
             <div class="card total-cylinders">
@@ -551,6 +557,8 @@ if (isset($_REQUEST['reset'])) {
           
 
         </div>
+        <?php endif; ?>
+        <?php if (checkPermission('sale_invoices_view')): ?>
         <div class="row">
           <div class="col-md-12">
             <div class="card">
@@ -586,9 +594,11 @@ if (isset($_REQUEST['reset'])) {
                       <div class="col-md-3">
                         <button class="btn btn-info" id="resetFilterBtn" title="Reset Filter"><i class="fa fa-refresh"></i></button>
                         <button class="btn btn-primary ml-1" id="downloadExcelBtn" title="Download Excel"><i class="fa fa-download"></i></button>
+                        <?php if (checkPermission('sale_invoices_add')): ?>
                         <a class="btn btn-success text-white" href="views/add-sale-invoice.php" title="Add Invoice">
                           <i class="fa fa-plus"></i> Add Invoice
                         </a>
+                        <?php endif; ?>
                       </div>
                     </div>
                   </div>
@@ -610,8 +620,8 @@ if (isset($_REQUEST['reset'])) {
               </div>
             </div>
           </div>
-
         </div>
+        <?php endif; ?>
       </div>
     </div>
   </div>

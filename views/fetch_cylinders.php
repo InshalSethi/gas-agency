@@ -1,6 +1,14 @@
 <?php
 require '../config/db.php';
 
+require_once '../config/db_functions.php';
+require '../config/auth.php';
+
+if (!checkPermission('cylinders_view')) {
+    echo json_encode(["data" => []]);
+    exit();
+}
+
 $draw = $_REQUEST['draw'];
 $row = $_REQUEST['start'];
 $rowperpage = $_REQUEST['length']; // Rows display per page
@@ -51,14 +59,22 @@ $totalRecords = $db->count;
 $data = [];
 
 foreach($cylinders as $cylinder) {
+    $actions = '';
+    if (checkPermission('cylinders_edit')) {
+        $actions .= '<a href="edit_cylinder.php?id=' . $cylinder['id'] . '" class="btn btn-warning btn-sm">Edit</a> ';
+    }
+    if (checkPermission('cylinders_delete')) {
+        $actions .= '<a href="delete_cylinder.php?id=' . $cylinder['id'] . '" class="btn btn-sm btn-outline-danger">Delete</a>';
+    }
+
     $data[] = [
         'id' => $cylinder['id'],
         'name' => $cylinder['name'],
         'empty_qty' => $cylinder['empty_qty'],
         'qty' => $cylinder['qty'],
         'retail_rate' => $cylinder['retail_rate'],
-        'created_at' => date("d-m-Y h:i:s", strtotime($cylinder['created_at'])),
-        'actions' => '<a href="edit_cylinder.php?id=' . $cylinder['id'] . '" class="btn btn-warning btn-sm">Edit</a><a href="delete_cylinder.php?id=' . $cylinder['id'] . '" class="btn btn-sm btn-outline-danger">Delete</a>'
+        'created_at' => !empty($cylinder['created_at']) ? date("d-m-Y h:i:s", strtotime($cylinder['created_at'])) : '',
+        'actions' => $actions
     ];
 }
 

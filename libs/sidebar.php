@@ -26,20 +26,50 @@
   }
   ?>
   <ul class="admin-links">
+    <?php if (checkPermission('dashboard_view')): ?>
     <li><a href="<?php echo baseurl('') ?>" class="admin-link <?php echo isActive('index.php', $current_page, $current_dir); ?>">Dashboard</a></li>
+    <?php endif; ?>
+    
+    <?php if (checkPermission('customers_view')): ?>
     <li><a href="<?php echo baseurl('views/customer_management.php') ?>" class="admin-link <?php echo isActive('customer_management.php', $current_page, $current_dir); ?>">Customers</a></li>
+    <?php endif; ?>
+
+    <?php if (checkPermission('inactive_customers_view')): ?>
     <li><a href="<?php echo baseurl('views/inactive_customers.php') ?>" class="admin-link <?php echo isActive('inactive_customers.php', $current_page, $current_dir); ?>">InActive Customers</a></li>
+    <?php endif; ?>
+
+    <?php if (checkPermission('vendors_view')): ?>
     <li><a href="<?php echo baseurl('views/vendor_management.php') ?>" class="admin-link <?php echo isActive('vendor_management.php', $current_page, $current_dir); ?>">Vendors</a></li>
+    <?php endif; ?>
+
+    <?php if (checkPermission('cylinders_view')): ?>
     <li><a href="<?php echo baseurl('views/cylinder_management.php') ?>" class="admin-link <?php echo isActive('cylinder_management.php', $current_page, $current_dir); ?>">Cylinders</a></li>
-    <!-- <li><a href="<?php echo baseurl('views/empty_stock.php') ?>" class="admin-link">Empty Stock</a></li> -->
+    <?php endif; ?>
+
+    <?php if (checkPermission('sale_invoices_view')): ?>
     <li><a href="<?php echo baseurl('views/sale-invoices.php') ?>" class="admin-link <?php echo isActive('sale-invoices.php', $current_page, $current_dir); ?>">Sale Invoices</a></li>
+    <?php endif; ?>
+
+    <?php if (checkPermission('purchase_invoices_view')): ?>
     <li><a href="<?php echo baseurl('views/purchase-invoices.php') ?>" class="admin-link <?php echo isActive('purchase-invoices.php', $current_page, $current_dir); ?>">Purchase Invoices</a></li>
+    <?php endif; ?>
+
+    <?php if (checkPermission('transactions_view')): ?>
     <li><a href="<?php echo baseurl('views/transaction_management.php') ?>" class="admin-link <?php echo isActive('transaction_management.php', $current_page, $current_dir); ?>">Transactions</a></li>
+    <?php endif; ?>
+
+    <?php if (checkPermission('reports_view')): ?>
     <li><a href="<?php echo baseurl('views/reports.php') ?>" class="admin-link <?php echo isActive('reports.php', $current_page, $current_dir); ?>">Reports</a></li>
-    <!-- <li><a href="<?php echo baseurl('views/pending_payments.php') ?>" class="admin-link">Pending Payments</a></li>
-    <li><a href="<?php echo baseurl('views/vendor_payment_management.php') ?>" class="admin-link">Venodr Payment</a></li>
-    <li><a href="<?php echo baseurl('views/pending_refills.php') ?>" class="admin-link">Pending Refils</a></li>
-    <li><a href="<?php echo baseurl('views/inactive_customers.php') ?>" class="admin-link">Inactive Customers</a></li> -->
+    <?php endif; ?>
+
+    <?php if (checkPermission('users_view')): ?>
+    <li><a href="<?php echo baseurl('views/user_management.php') ?>" class="admin-link <?php echo isActive('user_management.php', $current_page, $current_dir); ?>">Users</a></li>
+    <?php endif; ?>
+
+    <?php if (checkPermission('roles_view')): ?>
+    <li><a href="<?php echo baseurl('views/role_management.php') ?>" class="admin-link <?php echo isActive('role_management.php', $current_page, $current_dir); ?>">Roles</a></li>
+    <?php endif; ?>
+
     <li><a href="#" class="admin-link" data-toggle="modal" data-target="#profileModal" id="changePasswordModal">Change Password</a></li>
 
     <!-- Add more admin options here -->

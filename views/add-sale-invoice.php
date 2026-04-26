@@ -92,12 +92,12 @@ require '../config/auth.php';
 
             $invoice_id=$db->insert('invoices',$invoice_array); 
 
-            $pro_id=$_POST['package_id'];
-            $pro_name=$_POST['package_name'];
-            $pro_empty_quantity=$_POST['empty_quantity'];
-            $pro_quantity=$_POST['package_quantity'];
-            $pro_rate=$_POST['package_rate'];
-            $total_price=$_POST['total_price'];
+            $pro_id=$_POST['package_id'] ?? array();
+            $pro_name=$_POST['package_name'] ?? array();
+            $pro_empty_quantity=$_POST['empty_quantity'] ?? array();
+            $pro_quantity=$_POST['package_quantity'] ?? array();
+            $pro_rate=$_POST['package_rate'] ?? array();
+            $total_price=$_POST['total_price'] ?? array();
             $increase_flags = isset($_POST['increase_flag']) ? $_POST['increase_flag'] : array();
 
 

@@ -3,6 +3,12 @@
 require '../config/db.php';
 require_once '../config/db_functions.php';
 require '../config/auth.php';
+
+if (!checkPermission('inactive_customers_view')) {
+    echo "Access Denied. You do not have permission to view inactive customers.";
+    exit();
+}
+
 // Query inactive customers
 $inactiveCustomers = fetchInactiveCustomers();
 $inactiveCustomersCount = count($inactiveCustomers);

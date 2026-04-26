@@ -4,6 +4,12 @@ require '../config/db.php';
 require_once '../config/db_functions.php';
 require '../config/auth.php';
 
+if (!checkPermission('cylinders_view')) {
+    echo "Access Denied. You do not have permission to view cylinders.";
+    exit();
+}
+
+
 // Fetch vendors from the database
 $vendors = [];
 $vendorResult = $conn->query("SELECT id, name FROM vendors WHERE deleted= 0");
@@ -60,9 +66,11 @@ while ($row = $cylinder_result->fetch_assoc()) {
                       <div class="col-md-2">
                         <button class="btn btn-primary mt-2 w-100" id="resetFilterBtn"><i class="fa fa-refresh"></i> Reset Filter</button>
                       </div>
+                      <?php if (checkPermission('cylinders_add')): ?>
                       <div class="col-md-2">
                         <button class="btn btn-success mt-2 w-100" data-toggle="modal" data-target="#addCylinderModal"><i class="fas fa-plus"></i> Add New Cylinder</button>
                       </div>
+                      <?php endif; ?>
                     </div>
                   </div>
       <table id="cylinderTable" class="table table-striped table-bordered">

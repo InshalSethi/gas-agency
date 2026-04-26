@@ -3,19 +3,18 @@ require '../config/db.php';
 require_once '../config/db_functions.php';
 require '../config/auth.php';
 
+if (!checkPermission('transactions_view')) {
+    echo json_encode(["data" => []]);
+    exit();
+}
+
 // var_dump($_REQUEST);die();
 $draw = $_REQUEST['draw'];
-
 $row = $_REQUEST['start'];
-
 $rowperpage = $_REQUEST['length']; // Rows display per page
-
 $columnIndex = $_REQUEST['order'][0]['column']; // Column index
-
 $columnName = $_REQUEST['columns'][$columnIndex]['data']; // Column name
-
 $columnSortOrder = $_REQUEST['order'][0]['dir']; // asc or desc
-
 $searchQuery = $_REQUEST['search']['value'];
 
 // Date range filter parameters
@@ -181,14 +180,14 @@ foreach( $transactions as $transaction ){
     {
         $paid = '<span class="text-danger">'.$transaction['amount'].'</span>';
     }
-    // $securityDetail = '';
-    // if ($row['security_type'] == 'Person') {
-    //     $securityDetail = "Person: " . $row['person_name'];
-    // } elseif ($row['security_type'] == 'Cash') {
-    //     $securityDetail = "Cash: " . $row['cash_amount'];
-    // } elseif ($row['security_type'] == 'Cheque') {
-    //     $securityDetail = "Cheque";
-    // }
+
+    $actions = '';
+    if (checkPermission('transactions_edit')) {
+        $actions .= '<a href="edit-transaction.php?id=' . $transaction['id'] . '" class="btn btn-info btn-sm">Edit</a> ';
+    }
+    if (checkPermission('transactions_delete')) {
+        $actions .= '<a class="btn btn-danger btn-sm" onclick="deleteRow(' . $transaction['id'] . ')">Delete</a>';
+    }
 
     $data[] = [
         'id' => $transaction['id'],
@@ -199,9 +198,7 @@ foreach( $transactions as $transaction ){
         'received' => $received,
         'paid' => $paid,
         'balance' => '<span class="fw-bold ' . ($currentRowBalance >= 0 ? 'text-success' : 'text-danger') . '">' . number_format($currentRowBalance, 2) . '</span>',
-        'actions' => '
-        <a href="edit-transaction.php?id=' . $transaction['id'] . '" class="btn btn-info btn-sm">Edit</a>
-        <a class="btn btn-danger btn-sm"  onclick="deleteRow('.$transaction['id'].')">Delete</a>'
+        'actions' => $actions
     ];
 }
 

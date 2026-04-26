@@ -470,11 +470,11 @@ if (isset($_GET['id'])) {
             </div>
             <div class="form-group" id="cash_security" >
                 <label for="cash_amount">Cash Amount:</label>
-                <input type="number" id="cash_amount" name="cash_amount" class="form-control" value="<?php echo htmlspecialchars($security['cash_amount']); ?>">
+                <input type="number" id="cash_amount" name="cash_amount" class="form-control" value="<?php echo htmlspecialchars($security['cash_amount'] ?? ''); ?>">
             </div>
             <div class="form-group" id="cheque_security" >
                 <label for="cheque_details">Cheque Details:</label>
-                <input type="text" id="cheque_details" name="cheque_details" class="form-control" value="<?php echo htmlspecialchars($security['cheque_details']); ?>">
+                <input type="text" id="cheque_details" name="cheque_details" class="form-control" value="<?php echo htmlspecialchars($security['cheque_details'] ?? ''); ?>">
             </div>
             <button type="submit"  name="save" class="btn btn-primary">Update Customer</button>
             <button type="button" class="btn btn-secondary" onclick="window.history.back()">Back</button>

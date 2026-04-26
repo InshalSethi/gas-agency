@@ -2,9 +2,18 @@
 // views/dashboard.php
 require '../config/db.php';
 require_once '../config/db_functions.php';
-require '../config/auth.php';
+require '../config/auth.php'; // Added this line
+if (!checkPermission('purchase_invoices_view')) {
+    echo "Access Denied. You do not have permission to view purchase invoices.";
+    exit();
+}
+
 if (isset($_REQUEST['id'])) {
-  $x=$_REQUEST['id'];
+    if (!checkPermission('purchase_invoices_delete')) {
+        echo "Access Denied. You do not have permission to delete invoices.";
+        exit();
+    }
+    $x=$_REQUEST['id'];
   if ( $x != '')   {
     date_default_timezone_set("Asia/Karachi");
     $delDate =  date("Y-m-d h:i:s");
@@ -30,7 +39,9 @@ if (isset($_REQUEST['id'])) {
     <header><h4 class="text-white">Purchase Invoices</h4></header>
     <div class="table-container">
         <div class="d-flex justify-content-end mt-2 mb-2">
+          <?php if (checkPermission('purchase_invoices_add')): ?>
           <a class="btn btn-success" href="add-purchase-invoice.php"><i class="fa fa-plus"></i> Add Invoice</a>
+          <?php endif; ?>
         </div>
         <table id="purchaseInvoiceTable" class="table table-striped table-hover">
             <thead class="thead-dark">

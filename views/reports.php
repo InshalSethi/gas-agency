@@ -2,6 +2,12 @@
 require '../config/db.php';
 require_once '../config/db_functions.php';
 require '../config/auth.php';
+
+if (!checkPermission('reports_view')) {
+    echo "Access Denied. You do not have permission to view reports.";
+    exit();
+}
+
 ?>
 
 <!DOCTYPE html>
