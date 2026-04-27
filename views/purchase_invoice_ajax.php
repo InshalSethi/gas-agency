@@ -1,58 +1,72 @@
 <?php
 require '../config/db.php';
-
 require_once '../config/db_functions.php';
-require '../config/auth.php';
+require_once '../config/auth.php';
 
 if (!checkPermission('purchase_invoices_view')) {
-    echo json_encode(["data" => []]);
+    echo json_encode(["draw" => 0, "iTotalRecords" => 0, "iTotalDisplayRecords" => 0, "data" => []]);
     exit();
 }
 
 $draw = $_REQUEST['draw'];
 $row = $_REQUEST['start'];
-$rowperpage = $_REQUEST['length']; // Rows display per page
-$columnIndex = $_REQUEST['order'][0]['column']; // Column index
-$columnName = $_REQUEST['columns'][$columnIndex]['data']; // Column name
-$columnSortOrder = $_REQUEST['order'][0]['dir']; // asc or desc
+$rowperpage = $_REQUEST['length'];
+$columnIndex = $_REQUEST['order'][0]['column'];
+$columnName = $_REQUEST['columns'][$columnIndex]['data'];
+$columnSortOrder = $_REQUEST['order'][0]['dir'];
 $searchQuery = $_REQUEST['search']['value'];
-$totalRecords=0;
-$cols=array(
-    "inv.id",
-    "inv.vendor_id",
-    "inv.date",
-    "inv.grand_total",
-    "inv.paid",
-    "inv.balance",
-    "inv.created_at",
-    "ven.name as vendor"
+
+$cols = array(
+    "inv.id", "inv.vendor_id", "inv.date", "inv.grand_total", "inv.paid",
+    "inv.balance", "inv.created_at", "ven.name as vendor"
 );
+
+// Total Records
+$totalRecords = $db->where("deleted_at", NULL, "IS")->getValue("purchase_invoices", "count(*)");
+
+// Reset for filtered query
 $db->join("vendors ven", "inv.vendor_id=ven.id", "LEFT");
+$db->where("inv.deleted_at", NULL, 'IS');
 
 if (!empty($searchQuery)) {
-         $db->where ("ven.name", '%'.$searchQuery.'%', 'like');
-         $db->orWhere ("inv.date", '%'.$searchQuery.'%', 'like');
-         $db->orWhere ("inv.grand_total", '%'.$searchQuery.'%', 'like');
-         $db->orWhere ("inv.paid", '%'.$searchQuery.'%', 'like');
-         $db->orWhere ("inv.balance", '%'.$searchQuery.'%', 'like');
+    $db->where("(ven.name LIKE ? OR inv.date LIKE ? OR inv.grand_total LIKE ? OR inv.paid LIKE ? OR inv.balance LIKE ?)", 
+        array('%'.$searchQuery.'%', '%'.$searchQuery.'%', '%'.$searchQuery.'%', '%'.$searchQuery.'%', '%'.$searchQuery.'%'));
 }
 
-$db->where ("inv.deleted_at", NULL, 'IS');
-$db->orderBy("inv.id","desc");
-$invoices=$db->get('purchase_invoices inv',Array ($row, $rowperpage),$cols);
-$totalRecords = $db->count;
-$data = [];
+// Clone for display records count
+$countDb = clone $db;
+$totalDisplayRecords = $countDb->getValue("purchase_invoices inv", "count(*)");
 
-foreach( $invoices as $invoice ){
-    $totalInvCylinders = 0;
-    $totalEmptyCylinders = 0;
-    $db->where("purchase_invoice_id", $invoice['id']);
-    $invoiceItems = $db->get("purchase_invoice_items");
-    foreach ($invoiceItems as $invoiceItem) {
-        $totalInvCylinders += $invoiceItem['qty'];
-        $totalEmptyCylinders += $invoiceItem['empty_qty'];
+$db->orderBy("inv.id", "desc");
+$invoices = $db->get('purchase_invoices inv', Array($row, $rowperpage), $cols);
+
+if (empty($invoices)) {
+    echo json_encode([
+        "draw" => intval($draw),
+        "iTotalRecords" => $totalRecords,
+        "iTotalDisplayRecords" => 0,
+        "data" => []
+    ]);
+    exit;
+}
+
+// Batch fetch items to avoid N+1
+$invoiceIds = array_column($invoices, 'id');
+$db->where("purchase_invoice_id", $invoiceIds, "IN");
+$allItems = $db->get("purchase_invoice_items");
+$itemTotals = [];
+foreach ($allItems as $item) {
+    if (!isset($itemTotals[$item['purchase_invoice_id']])) {
+        $itemTotals[$item['purchase_invoice_id']] = ['qty' => 0, 'empty' => 0];
     }
+    $itemTotals[$item['purchase_invoice_id']]['qty'] += (int)$item['qty'];
+    $itemTotals[$item['purchase_invoice_id']]['empty'] += (int)$item['empty_qty'];
+}
 
+$data = [];
+foreach ($invoices as $invoice) {
+    $totals = isset($itemTotals[$invoice['id']]) ? $itemTotals[$invoice['id']] : ['qty' => 0, 'empty' => 0];
+    
     $actions = '';
     if (checkPermission('purchase_invoices_edit')) {
         $actions .= '<a href="edit-purchase-invoice.php?id=' . $invoice['id'] . '" class="btn btn-warning btn-sm">Edit</a> ';
@@ -64,8 +78,8 @@ foreach( $invoices as $invoice ){
     $data[] = [
         'id' => $invoice['id'],
         'vendor' => '<a href="vendor-ledger.php?id=' . $invoice['vendor_id'] . '" class="text-primary"><b>' . $invoice['vendor'] . '</b></a>',
-        'empty_cylinders' => $totalEmptyCylinders,
-        'total_cylinders' => $totalInvCylinders,
+        'empty_cylinders' => $totals['empty'],
+        'total_cylinders' => $totals['qty'],
         'date' => date("d-m-Y", strtotime($invoice['date'])),
         'grand_total' => $invoice['grand_total'],
         'paid' => $invoice['paid'],
@@ -75,20 +89,10 @@ foreach( $invoices as $invoice ){
     ];
 }
 
-// Output the data in JSON format
-$response = array(
-
-        "draw" => intval($draw),
-
-        "iTotalRecords" =>  $totalRecords,
-
-        "iTotalDisplayRecords" => $totalRecords,
-
-        "data" => $data,
-
-      );
-
-      echo json_encode($response);
-// echo json_encode(['data' => $data]);
-
+echo json_encode([
+    "draw" => intval($draw),
+    "iTotalRecords" => $totalRecords,
+    "iTotalDisplayRecords" => $totalDisplayRecords,
+    "data" => $data,
+]);
 ?>

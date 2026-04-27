@@ -106,13 +106,30 @@ if (isset($_REQUEST['id'])) {
       }
 
     }
-    var defaultStartDate = moment().subtract(0, 'days');
-    var defaultEndDate = moment();
+    var today = moment().format('MM/DD/YYYY');
+    var defaultDateRange = today + ' - ' + today;
+    $('#dateRangePicker').val(defaultDateRange);
+
     // Initialize date range picker
     $('#dateRangePicker').daterangepicker({
-        opens: 'left'
-    }, function(start, end, label) {
-        $('#dashboardTable').DataTable().ajax.reload();
+        opens: 'left',
+        autoUpdateInput: true,
+        startDate: moment(),
+        endDate: moment(),
+        locale: {
+            cancelLabel: 'Clear',
+            format: 'MM/DD/YYYY'
+        }
+    });
+
+    $('#dateRangePicker').on('apply.daterangepicker', function(ev, picker) {
+        $(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
+        saleInvoiceTable.draw();
+    });
+
+    $('#dateRangePicker').on('cancel.daterangepicker', function(ev, picker) {
+        $(this).val('');
+        saleInvoiceTable.draw();
     });
     $(document).ready(function () {
         
@@ -159,11 +176,7 @@ if (isset($_REQUEST['id'])) {
           });
 
           $('#resetFilterBtn').click(function() {
-            // Reset date range picker to default values
-            $('#dateRangePicker').data('daterangepicker').setStartDate(defaultStartDate);
-            $('#dateRangePicker').data('daterangepicker').setEndDate(defaultEndDate);
-            
-            // Reload the DataTable
+            $('#dateRangePicker').val(defaultDateRange);
             saleInvoiceTable.draw();
           });
 

@@ -3,86 +3,73 @@ require '../config/db.php';
 require_once '../config/db_functions.php';
 require_once '../config/auth.php';
 
-// Get search query if available
-// var_dump($_REQUEST);die();
 $draw = $_REQUEST['draw'];
-
 $row = $_REQUEST['start'];
-
-$rowperpage = $_REQUEST['length']; // Rows display per page
-
-$columnIndex = $_REQUEST['order'][0]['column']; // Column index
-
-$columnName = $_REQUEST['columns'][$columnIndex]['data']; // Column name
-
-$columnSortOrder = $_REQUEST['order'][0]['dir']; // asc or desc
-
+$rowperpage = $_REQUEST['length'];
+$columnIndex = $_REQUEST['order'][0]['column'];
+$columnName = $_REQUEST['columns'][$columnIndex]['data'];
+$columnSortOrder = $_REQUEST['order'][0]['dir'];
 $searchQuery = $_REQUEST['search']['value'];
 
-$start_date = date("Y-m-d", strtotime($_REQUEST['start_date']));
-$end_date = date("Y-m-d", strtotime($_REQUEST['end_date']));
+$start_date = !empty($_REQUEST['start_date']) ? date("Y-m-d", strtotime($_REQUEST['start_date'])) : null;
+$end_date = !empty($_REQUEST['end_date']) ? date("Y-m-d", strtotime($_REQUEST['end_date'])) : null;
 
-$totalRecords=0;
-$cols=array(
-    "inv.id","inv.customer_id",
-    "inv.empty_cylinders",
-    "inv.date",
-    "inv.grand_total",
-    "inv.received",
-    "inv.balance",
-    "inv.description",
-    "inv.created_at",
-    "cus.name as customer"
+$cols = array(
+    "inv.id", "inv.customer_id", "inv.empty_cylinders", "inv.date",
+    "inv.grand_total", "inv.received", "inv.balance", "inv.description",
+    "inv.created_at", "cus.name as customer"
 );
+
+// Total Records (All non-deleted)
+$totalRecords = $db->where("deleted_at", NULL, "IS")->getValue("invoices", "count(*)");
+
+// Reset for filtered query
 $db->join("customers cus", "inv.customer_id=cus.id", "LEFT");
+$db->where("cus.deleted_at", NULL, 'IS');
+$db->where("inv.deleted_at", NULL, 'IS');
 
-
-
-// var_dump($result);die();
-// Initialize the base SQL query
-// $sql = "SELECT c.*, s.security_type, s.person_name, s.cash_amount, s.cheque_details
-//         FROM customers c
-//         LEFT JOIN security_options s ON c.customer_id = s.customer_id";
-
-// // Modify the query if there is a search query
-// if ($searchQuery) {
-//     $sql .= " WHERE c.name LIKE '%$searchQuery%' OR c.phone LIKE '%$searchQuery%' OR c.cnic LIKE '%$searchQuery%'";
-// }
-if (!empty($_REQUEST['start_date']) && !empty($_REQUEST['end_date'])) {
+if ($start_date && $end_date) {
     $db->where("inv.date", Array($start_date, $end_date), 'BETWEEN');
 }
-$db->where ("cus.deleted_at", NULL, 'IS');
-$db->where ("inv.deleted_at", NULL, 'IS');
+
 if (!empty($searchQuery)) {
-         $db->where ("cus.name", '%'.$searchQuery.'%', 'like');
-         $db->orWhere ("inv.description", '%'.$searchQuery.'%', 'like');
-         $db->orWhere ("inv.date", '%'.$searchQuery.'%', 'like');
-         $db->orWhere ("inv.grand_total", '%'.$searchQuery.'%', 'like');
-         $db->orWhere ("inv.received", '%'.$searchQuery.'%', 'like');
-         $db->orWhere ("inv.balance", '%'.$searchQuery.'%', 'like');
+    $db->where("(cus.name LIKE ? OR inv.description LIKE ? OR inv.date LIKE ? OR inv.grand_total LIKE ? OR inv.received LIKE ? OR inv.balance LIKE ?)", 
+        array('%'.$searchQuery.'%', '%'.$searchQuery.'%', '%'.$searchQuery.'%', '%'.$searchQuery.'%', '%'.$searchQuery.'%', '%'.$searchQuery.'%'));
 }
 
-// $result = $conn->query($sql);
+// Clone for display records count (filtered)
+$countDb = clone $db;
+$totalDisplayRecords = $countDb->getValue("invoices inv", "count(*)");
 
-$db->orderBy("inv.id","desc");
-$invoices=$db->get('invoices inv',Array ($row, $rowperpage),$cols);
-$totalRecords = $db->count;
-// echo ''.$db->getLastQuery();die();
-// Initialize an array to hold the output data
-$data = [];
+$db->orderBy("inv.id", "desc");
+$invoices = $db->get('invoices inv', Array($row, $rowperpage), $cols);
 
-// Fetch rows from the result set
-foreach( $invoices as $invoice ){
+if (empty($invoices)) {
+    echo json_encode([
+        "draw" => intval($draw),
+        "iTotalRecords" => $totalRecords,
+        "iTotalDisplayRecords" => 0,
+        "data" => []
+    ]);
+    exit;
+}
 
-    $totalInvCylinders = 0;
-    $totalEmptyCylinders = 0;
-    $db->where("invoice_id", $invoice['id']);
-    $invoiceItems = $db->get("invoice_items");
-    foreach ($invoiceItems as $invoiceItem) {
-        $totalInvCylinders += (int)$invoiceItem['qty'];
-        $totalEmptyCylinders += (int)$invoiceItem['empty_qty'];
+// Batch fetch invoice items to avoid N+1
+$invoiceIds = array_column($invoices, 'id');
+$db->where("invoice_id", $invoiceIds, "IN");
+$allItems = $db->get("invoice_items");
+$itemTotals = [];
+foreach ($allItems as $item) {
+    if (!isset($itemTotals[$item['invoice_id']])) {
+        $itemTotals[$item['invoice_id']] = ['qty' => 0, 'empty' => 0];
     }
+    $itemTotals[$item['invoice_id']]['qty'] += (int)$item['qty'];
+    $itemTotals[$item['invoice_id']]['empty'] += (int)$item['empty_qty'];
+}
 
+$data = [];
+foreach ($invoices as $invoice) {
+    $totals = isset($itemTotals[$invoice['id']]) ? $itemTotals[$invoice['id']] : ['qty' => 0, 'empty' => 0];
     
     $actions = '';
     if (checkPermission('sale_invoices_edit')) {
@@ -96,8 +83,8 @@ foreach( $invoices as $invoice ){
         'id' => $invoice['id'],
         'description' => $invoice['description'],
         'customer' => '<a href="customer-ledger.php?id=' . $invoice['customer_id'] . '" class="text-primary"><b>'.$invoice['customer'].'</b></a>',
-        'empty_cylinders' => $totalEmptyCylinders,
-        'qty' => $totalInvCylinders,
+        'empty_cylinders' => $totals['empty'],
+        'qty' => $totals['qty'],
         'date' => date("d-m-Y", strtotime($invoice['date'])),
         'grand_total' => $invoice['grand_total'],
         'received' => $invoice['received'],
@@ -107,20 +94,10 @@ foreach( $invoices as $invoice ){
     ];
 }
 
-// Output the data in JSON format
-$response = array(
-
-        "draw" => intval($draw),
-
-        "iTotalRecords" =>  $totalRecords,
-
-        "iTotalDisplayRecords" => $totalRecords,
-
-        "data" => $data,
-
-      );
-
-      echo json_encode($response);
-// echo json_encode(['data' => $data]);
-
+echo json_encode([
+    "draw" => intval($draw),
+    "iTotalRecords" => $totalRecords,
+    "iTotalDisplayRecords" => $totalDisplayRecords,
+    "data" => $data,
+]);
 ?>
