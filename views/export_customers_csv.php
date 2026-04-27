@@ -34,218 +34,149 @@ $headers = [
 
 fputcsv($output, $headers);
 
-// Get all non-deleted customers with search filter applied
+// Step 1: Get customers matching search query
 $db->where("deleted_at", NULL, 'IS');
-
 if (!empty($searchQuery)) {
     $db->where("(name LIKE '%" . $searchQuery . "%' OR phone LIKE '%" . $searchQuery . "%' OR cnic LIKE '%" . $searchQuery . "%' OR created_at LIKE '%" . $searchQuery . "%')");
 }
-
 $customers = $db->get('customers', null, ['id', 'customer_id', 'name', 'phone', 'cnic']);
 
-// Get all customer IDs
-$customerIds = array_column($customers, 'id');
+if (empty($customers)) {
+    fclose($output);
+    exit;
+}
 
-// Get balance calculations for all customers
-$balanceData = [];
-foreach ($customerIds as $customerId) {
-    $receivedCustomersArray = [];
-    $totalReceivable = 0;
-    $totalReceived = 0;
+// Step 2: Batch fetch ALL necessary data
+// 1. Balance Data
+$balanceQuery = "SELECT 
+    c.id, 
+    COALESCE(i.total_receivable, 0) as total_receivable,
+    CASE WHEN i.total_receivable IS NOT NULL THEN COALESCE(t.total_received, 0) ELSE 0 END as total_received
+FROM customers c
+LEFT JOIN (
+    SELECT customer_id, SUM(grand_total) as total_receivable
+    FROM invoices
+    WHERE deleted_at IS NULL
+    GROUP BY customer_id
+) i ON c.id = i.customer_id
+LEFT JOIN (
+    SELECT customer_id, SUM(amount) as total_received
+    FROM transactions
+    WHERE deleted_at IS NULL
+    GROUP BY customer_id
+) t ON c.id = t.customer_id
+WHERE c.deleted_at IS NULL";
+$balanceResults = $db->rawQuery($balanceQuery);
+$balanceDataMap = [];
+foreach ($balanceResults as $res) {
+    $balanceDataMap[$res['id']] = $res['total_receivable'] - $res['total_received'];
+}
 
-    // Fetch invoices
-    $db->where("deleted_at", NULL, 'IS');
-    $db->where("customer_id", $customerId);
-    $invoices = $db->get("invoices");
-    foreach ($invoices as $invoice) {
-        $totalReceivable += $invoice['grand_total'];
-        
-        if (!in_array($invoice['customer_id'], $receivedCustomersArray)) {
-            array_push($receivedCustomersArray, $invoice['customer_id']);
-        }
-    }
-
-    // Fetch transactions
-    if (!empty($receivedCustomersArray)) {
-        $db->where('customer_id', $receivedCustomersArray, 'IN');
-        $db->where("deleted_at", NULL, 'IS');
-        $transactions = $db->get("transactions");
-        foreach ($transactions as $transaction) {
-            $totalReceived += $transaction['amount'];
-        }
-    }
-    
-    $balance = $totalReceivable - $totalReceived;
-    
-    $balanceData[$customerId] = [
-        'total_receivable' => $totalReceivable,
-        'total_received' => $totalReceived,
-        'balance' => $balance
+// 2. Stock Summaries
+$stockQuery = "SELECT 
+    customer_id, 
+    GROUP_CONCAT(CONCAT(product_name, '(', empty_qty, ')') ORDER BY product_name SEPARATOR ', ') AS empty_stock,
+    GROUP_CONCAT(CONCAT(product_name, '(', qty, ')') ORDER BY product_name SEPARATOR ', ') AS qty_stock
+FROM (
+    SELECT 
+        i.customer_id, 
+        cy.name as product_name,
+        SUM(ii.empty_qty) AS empty_qty,
+        SUM(ii.qty) AS qty
+    FROM 
+        invoices i
+    JOIN 
+        invoice_items ii ON i.id = ii.invoice_id
+    JOIN 
+        cylinders cy ON cy.id = ii.product_id
+    WHERE 
+        i.deleted_at IS NULL
+    GROUP BY 
+        i.customer_id, cy.name
+) AS subquery
+GROUP BY 
+    customer_id";
+$stockResults = $db->rawQuery($stockQuery);
+$stockDataMap = [];
+foreach ($stockResults as $res) {
+    $stockDataMap[$res['customer_id']] = [
+        'empty_str' => $res['empty_stock'],
+        'qty_str' => $res['qty_stock']
     ];
 }
 
-// Get stock summaries for all customers
-$stockSummaries = [];
-foreach ($customerIds as $customerId) {
-    $query = "SELECT 
-                customer_id, 
-                customer_name,
-                GROUP_CONCAT(CONCAT(product_name, '(', empty_qty, ')') ORDER BY product_name SEPARATOR ', ') AS empty_stock,
-                GROUP_CONCAT(CONCAT(product_name, '(', qty, ')') ORDER BY product_name SEPARATOR ', ') AS qty_stock
-            FROM (
-                SELECT 
-                    c.id AS customer_id, 
-                    c.name AS customer_name, 
-                    cy.name as product_name,
-                    SUM(ii.empty_qty) AS empty_qty,
-                    SUM(ii.qty) AS qty
-                FROM 
-                    customers c
-                JOIN 
-                    invoices i ON c.id = i.customer_id
-                JOIN 
-                    invoice_items ii ON i.id = ii.invoice_id
-                JOIN 
-                    cylinders cy ON cy.id = ii.product_id
-                WHERE 
-                    c.id = ? AND i.deleted_at IS NULL
-                GROUP BY 
-                    c.id, c.name, cy.name
-            ) AS subquery
-            GROUP BY 
-                customer_id, customer_name;";
-
-    $getStockDetails = $db->rawQueryOne($query, [$customerId]);
-    
-    $purStock = [];
-    $empStock = [];
-
-    // Parse purchased stock
-    if ($getStockDetails && !empty($getStockDetails['qty_stock'])) {
-        $qtyStockArray = explode(',', $getStockDetails['qty_stock']);
-        foreach ($qtyStockArray as $item) {
-            preg_match('/(.+?)\((\d+)\)/', trim($item), $matches);
-            if (isset($matches[1]) && isset($matches[2])) {
-                $purStock[trim($matches[1])] = (int)$matches[2];
-            }
-        }
-    }
-
-    // Parse empty stock
-    if ($getStockDetails && !empty($getStockDetails['empty_stock'])) {
-        $emptyStockArray = explode(',', $getStockDetails['empty_stock']);
-        foreach ($emptyStockArray as $item) {
-            preg_match('/(.+?)\((\d+)\)/', trim($item), $matches);
-            if (isset($matches[1]) && isset($matches[2])) {
-                $empStock[trim($matches[1])] = (int)$matches[2];
-            }
-        }
-    }
-    
-    $stockSummaries[$customerId] = [
-        'purchased' => $purStock,
-        'empty' => $empStock,
-        'purchased_str' => ($getStockDetails && isset($getStockDetails['qty_stock'])) ? $getStockDetails['qty_stock'] : '',
-        'empty_str' => ($getStockDetails && isset($getStockDetails['empty_stock'])) ? $getStockDetails['empty_stock'] : ''
-    ];
+// 3. Bonus Summaries
+$bonusQuery = "SELECT 
+    b.customer_id, 
+    GROUP_CONCAT(CONCAT(cy.name, '(', b.qty, ')') ORDER BY cy.name SEPARATOR ', ') AS bonus_stock
+FROM 
+    bonus_cylinders b
+JOIN 
+    cylinders cy ON b.product_id = cy.id
+GROUP BY 
+    b.customer_id";
+$bonusResults = $db->rawQuery($bonusQuery);
+$bonusDataMap = [];
+foreach ($bonusResults as $res) {
+    $bonusDataMap[$res['customer_id']] = $res['bonus_stock'];
 }
 
-// Get bonus summaries for all customers
-$bonusSummaries = [];
-foreach ($customerIds as $customerId) {
-    $getBonusStockDetails = getCustomerBonus($db, $customerId);
-    
-    if (!empty($getBonusStockDetails['bonus_stock'])) {
-        $bonusStock = [];
-        $bonusStockArray = explode(',', $getBonusStockDetails['bonus_stock']);
-        foreach ($bonusStockArray as $item) {
-            preg_match('/(.+?)\((\d+)\)/', trim($item), $matches);
-            if (isset($matches[1]) && isset($matches[2])) {
-                $bonusStock[trim($matches[1])] = (int)$matches[2];
-            }
+// Helper to parse strings like "Oxygen(5), LPG(2)" into array
+function parseStockStrLocal($str) {
+    $stock = [];
+    if (empty($str)) return $stock;
+    $items = explode(',', $str);
+    foreach ($items as $item) {
+        if (preg_match('/(.+?)\((\d+)\)/', trim($item), $matches)) {
+            $stock[trim($matches[1])] = (int)$matches[2];
         }
-        
-        $bonusSummaries[$customerId] = [
-            'bonus' => $bonusStock,
-            'bonus_str' => $getBonusStockDetails['bonus_stock'],
-            'total_bonus' => array_sum($bonusStock)
-        ];
-    } else {
-        $bonusSummaries[$customerId] = [
-            'bonus' => [],
-            'bonus_str' => '',
-            'total_bonus' => 0
-        ];
     }
+    return $stock;
 }
 
 // Process and write data to CSV
 foreach ($customers as $customer) {
-    $customerId = $customer['id'];
+    $id = $customer['id'];
     
-    // Calculate balance
-    $balance = isset($balanceData[$customerId]) ? $balanceData[$customerId]['balance'] : 0;
+    $balance = isset($balanceDataMap[$id]) ? $balanceDataMap[$id] : 0;
+    $qtyStr = isset($stockDataMap[$id]) ? $stockDataMap[$id]['qty_str'] : '';
+    $emptyStr = isset($stockDataMap[$id]) ? $stockDataMap[$id]['empty_str'] : '';
+    $bonusStr = isset($bonusDataMap[$id]) ? $bonusDataMap[$id] : '';
     
-    // Get stock data
-    $purchasedStock = isset($stockSummaries[$customerId]) ? $stockSummaries[$customerId]['purchased'] : [];
-    $emptyStock = isset($stockSummaries[$customerId]) ? $stockSummaries[$customerId]['empty'] : [];
-    $purchasedStr = isset($stockSummaries[$customerId]) ? $stockSummaries[$customerId]['purchased_str'] : '';
-    $emptyStr = isset($stockSummaries[$customerId]) ? $stockSummaries[$customerId]['empty_str'] : '';
+    // Parse for pending calculation
+    $purStock = parseStockStrLocal($qtyStr);
+    $empStock = parseStockStrLocal($emptyStr);
+    $bonStock = parseStockStrLocal($bonusStr);
     
-    // Get bonus data
-    $bonusStock = isset($bonusSummaries[$customerId]) ? $bonusSummaries[$customerId]['bonus'] : [];
-    $bonusStr = isset($bonusSummaries[$customerId]) ? $bonusSummaries[$customerId]['bonus_str'] : '';
-    
-    // Calculate pending cylinders
     $pendingCylinders = [];
-    foreach ($purchasedStock as $product => $qty) {
-        $empQty = isset($emptyStock[$product]) ? $emptyStock[$product] : 0;
-        $bonusQty = isset($bonusStock[$product]) ? $bonusStock[$product] : 0;
+    foreach ($purStock as $product => $qty) {
+        $empQty = isset($empStock[$product]) ? $empStock[$product] : 0;
+        $bonusQty = isset($bonStock[$product]) ? $bonStock[$product] : 0;
         $pendingQty = $qty - ($empQty + $bonusQty);
         if ($pendingQty > 0) {
             $pendingCylinders[$product] = $pendingQty;
         }
     }
 
-    $pendingStr = implode(', ', array_map(function ($product, $qty) {
-        return "$product($qty)";
-    }, array_keys($pendingCylinders), $pendingCylinders));
-
-    // Calculate total pending using sumBracketNumbers function
-    $pendingTotal = 0;
-    if (!empty($pendingStr)) {
-        $pendingTotal = sumBracketNumbers($pendingStr);
-    }
+    $pendingStr = implode(', ', array_map(function ($p, $q) { return "$p($q)"; }, array_keys($pendingCylinders), $pendingCylinders));
+    $pendingTotal = array_sum($pendingCylinders);
+    $totalBonus = array_sum($bonStock);
     
-    // Get total bonus
-    $totalBonus = isset($bonusSummaries[$customerId]) ? $bonusSummaries[$customerId]['total_bonus'] : 0;
+    // Filters
+    $include = true;
+    if ($balance_filter === 'receivable' && $balance <= 0) $include = false;
+    if ($bonus_filter === 'given' && $totalBonus <= 0) $include = false;
+    if ($empty_filter === 'receivable' && $pendingTotal <= 0) $include = false;
     
-    // Apply filters (same logic as fetch_customers.php)
-    $includeRecord = true;
+    if (!$include) continue;
     
-    if ($balance_filter === 'receivable' && $balance <= 0) {
-        $includeRecord = false;
-    }
-    if ($bonus_filter === 'given' && $totalBonus <= 0) {
-        $includeRecord = false;
-    }
-    if ($empty_filter === 'receivable' && $pendingTotal == 0) {
-        $includeRecord = false;
-    }
-    
-    // Skip this record if it doesn't match filters
-    if (!$includeRecord) {
-        continue;
-    }
-    
-    // Prepare row data
     $row = [
         $customer['customer_id'],
         $customer['name'],
         $customer['phone'],
         $customer['cnic'],
         number_format($balance, 2),
-        $purchasedStr ?: 'N/A',
+        $qtyStr ?: 'N/A',
         $emptyStr ?: 'N/A',
         $bonusStr ?: 'N/A',
         $pendingStr ?: 'N/A'
@@ -256,4 +187,3 @@ foreach ($customers as $customer) {
 
 fclose($output);
 exit;
-?>
